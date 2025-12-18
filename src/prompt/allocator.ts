@@ -11,22 +11,73 @@ export interface ContextItem {
   truncatable?: boolean;
 }
 
-interface CategoryBudget {
+export interface CategoryBudget {
   category: ContextCategory;
   percentage: number;
   minTokens: number;
   maxTokens: number;
 }
 
-// Category budgets sum to 100% - redistributed per ChatGPT review
-const DEFAULT_BUDGETS: CategoryBudget[] = [
-  { category: 'task', percentage: 0.05, minTokens: 200, maxTokens: 2000 },
-  { category: 'changed', percentage: 0.40, minTokens: 5000, maxTokens: 50000 },
-  { category: 'impacted', percentage: 0.25, minTokens: 3000, maxTokens: 30000 },
-  { category: 'contract', percentage: 0.15, minTokens: 2000, maxTokens: 20000 },
-  { category: 'architecture', percentage: 0.10, minTokens: 1000, maxTokens: 10000 },
-  { category: 'decision', percentage: 0.05, minTokens: 500, maxTokens: 5000 },
-];
+/**
+ * Error thrown when budget configuration is invalid.
+ * Exit code: 10 (CONFIG_ERROR)
+ */
+export class BudgetValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BudgetValidationError';
+  }
+}
+
+// Category budgets sum to 100% - frozen for immutability
+// NOTE: Sum of minTokens = 11,700. For budgets < 10,000, minTokens are not enforced.
+const DEFAULT_BUDGETS: readonly CategoryBudget[] = Object.freeze([
+  Object.freeze({ category: 'task' as const, percentage: 0.05, minTokens: 200, maxTokens: 2000 }),
+  Object.freeze({ category: 'changed' as const, percentage: 0.40, minTokens: 5000, maxTokens: 50000 }),
+  Object.freeze({ category: 'impacted' as const, percentage: 0.25, minTokens: 3000, maxTokens: 30000 }),
+  Object.freeze({ category: 'contract' as const, percentage: 0.15, minTokens: 2000, maxTokens: 20000 }),
+  Object.freeze({ category: 'architecture' as const, percentage: 0.10, minTokens: 1000, maxTokens: 10000 }),
+  Object.freeze({ category: 'decision' as const, percentage: 0.05, minTokens: 500, maxTokens: 5000 }),
+]);
+
+/**
+ * Validates budget configuration at construction time.
+ * Throws BudgetValidationError for invalid configurations.
+ */
+function validateBudgets(budgets: readonly CategoryBudget[]): void {
+  const seen = new Set<string>();
+  let pctSum = 0;
+
+  for (const b of budgets) {
+    if (seen.has(b.category)) {
+      throw new BudgetValidationError(`Duplicate budget category: ${b.category}`);
+    }
+    seen.add(b.category);
+
+    if (!Number.isFinite(b.percentage) || b.percentage < 0 || b.percentage > 1) {
+      throw new BudgetValidationError(`Invalid percentage for ${b.category}: ${b.percentage}`);
+    }
+    if (!Number.isFinite(b.minTokens) || b.minTokens < 0) {
+      throw new BudgetValidationError(`Invalid minTokens for ${b.category}: ${b.minTokens}`);
+    }
+    if (!Number.isFinite(b.maxTokens) || b.maxTokens < 0) {
+      throw new BudgetValidationError(`Invalid maxTokens for ${b.category}: ${b.maxTokens}`);
+    }
+    if (b.minTokens > b.maxTokens) {
+      throw new BudgetValidationError(`minTokens > maxTokens for ${b.category}: ${b.minTokens} > ${b.maxTokens}`);
+    }
+
+    pctSum += b.percentage;
+  }
+
+  // Allow tiny float error but enforce intent
+  if (Math.abs(pctSum - 1) > 1e-9) {
+    throw new BudgetValidationError(`Budget percentages must sum to 1.0 (got ${pctSum})`);
+  }
+}
+
+// Validate defaults at module load
+validateBudgets(DEFAULT_BUDGETS);
 
 export interface AllocationResult {
   allocated: ContextItem[];
@@ -37,12 +88,22 @@ export interface AllocationResult {
 
 export class BudgetAllocator {
   private tokenEstimator: TokenEstimator;
-  private budgets: CategoryBudget[];
+  private budgets: readonly CategoryBudget[];
 
   constructor(
     private totalBudget: number,
-    budgets: CategoryBudget[] = DEFAULT_BUDGETS
+    budgets: readonly CategoryBudget[] = DEFAULT_BUDGETS
   ) {
+    // Validate totalBudget
+    if (!Number.isFinite(totalBudget) || totalBudget <= 0) {
+      throw new BudgetValidationError(`Invalid totalBudget: ${totalBudget}. Must be a positive number.`);
+    }
+
+    // Validate custom budgets if provided (defaults already validated at module load)
+    if (budgets !== DEFAULT_BUDGETS) {
+      validateBudgets(budgets);
+    }
+
     this.tokenEstimator = createEstimator('generic');
     this.budgets = budgets;
   }
@@ -71,8 +132,17 @@ export class BudgetAllocator {
       const budget = categoryBudgets.get(category) || 0;
       let remaining = budget;
 
-      // Sort by priority (highest first)
-      const sorted = [...categoryItems].sort((a, b) => b.priority - a.priority);
+      // Sort by priority (highest first), then by path for determinism
+      // NOTE: Using < > comparison instead of localeCompare() for locale-independent ordering
+      const sorted = [...categoryItems].sort((a, b) => {
+        if (b.priority !== a.priority) return b.priority - a.priority;
+        // Tie-break by path for deterministic, locale-independent ordering
+        const ap = a.path ?? '';
+        const bp = b.path ?? '';
+        if (ap < bp) return -1;
+        if (ap > bp) return 1;
+        return 0;
+      });
 
       for (const item of sorted) {
         if (item.tokens <= remaining) {

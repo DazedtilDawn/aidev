@@ -12,7 +12,22 @@ export class GenericTokenEstimator implements TokenEstimator {
     return Math.ceil(baseEstimate * (1 + this.safetyBuffer));
   }
 
+  /**
+   * Truncate text to fit within maxTokens.
+   *
+   * For approximate estimators (isExact === false), this is best-effort.
+   * The estimate is conservative, so truncation should generally fit.
+   * Returns empty string for maxTokens <= 0.
+   */
   truncateToFit(text: string, maxTokens: number): string {
+    // Handle edge cases first
+    if (maxTokens <= 0) {
+      return '';
+    }
+    if (!text) {
+      return '';
+    }
+
     const currentTokens = this.estimateText(text);
     if (currentTokens <= maxTokens) {
       return text;
@@ -24,9 +39,12 @@ export class GenericTokenEstimator implements TokenEstimator {
     ) - 20; // Reserve for truncation marker
 
     if (targetChars <= 0) {
-      return '... [truncated]';
+      return '';
     }
 
-    return text.slice(0, targetChars) + '\n... [truncated]';
+    // Use Array.from to properly handle unicode/emoji (avoid splitting surrogates)
+    const chars = Array.from(text);
+    const truncatedChars = chars.slice(0, Math.min(targetChars, chars.length));
+    return truncatedChars.join('') + '\n... [truncated]';
   }
 }

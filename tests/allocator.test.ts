@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { BudgetAllocator, ContextItem } from '../src/prompt/allocator.js';
+import { BudgetAllocator, ContextItem, BudgetValidationError } from '../src/prompt/allocator.js';
 
 describe('BudgetAllocator', () => {
   it('allocates items within category budgets', () => {
@@ -91,5 +91,91 @@ describe('BudgetAllocator', () => {
 
     expect(result.budgetUsed.changed).toBe(100);
     expect(result.budgetUsed.impacted).toBe(100);
+  });
+
+  // Edge cases from ChatGPT review
+  describe('budget validation', () => {
+    it('throws BudgetValidationError when totalBudget is zero', () => {
+      expect(() => new BudgetAllocator(0)).toThrow(BudgetValidationError);
+    });
+
+    it('throws BudgetValidationError when totalBudget is negative', () => {
+      expect(() => new BudgetAllocator(-100)).toThrow(BudgetValidationError);
+    });
+
+    it('allows small budgets with degraded allocation (no minTokens enforcement)', () => {
+      // Small budget: 4000 tokens. Should use percentage-based only.
+      const items: ContextItem[] = [
+        { category: 'changed', path: 'a.ts', content: 'x', tokens: 100, priority: 1.0 },
+      ];
+
+      const allocator = new BudgetAllocator(4000);
+      const result = allocator.allocate(items);
+
+      // Should work without throwing - percentage of 4000 for changed (40%) = 1600 tokens
+      expect(result.allocated.length).toBe(1);
+      expect(result.totalTokens).toBe(100);
+    });
+
+    it('handles very small budgets (50 tokens) without NaN or negative values', () => {
+      const items: ContextItem[] = [
+        { category: 'task', path: 'task.md', content: 'x', tokens: 10, priority: 1.0 },
+      ];
+
+      const allocator = new BudgetAllocator(50);
+      const result = allocator.allocate(items);
+
+      // Should allocate what fits
+      expect(result.totalTokens).toBeGreaterThanOrEqual(0);
+      expect(Number.isNaN(result.totalTokens)).toBe(false);
+    });
+
+    it('allocates deterministically with equal priority items', () => {
+      const items: ContextItem[] = [
+        { category: 'changed', path: 'z.ts', content: 'z', tokens: 100, priority: 0.5 },
+        { category: 'changed', path: 'a.ts', content: 'a', tokens: 100, priority: 0.5 },
+        { category: 'changed', path: 'm.ts', content: 'm', tokens: 100, priority: 0.5 },
+      ];
+
+      const allocator = new BudgetAllocator(10000);
+
+      // Run multiple times
+      const results = Array(5).fill(null).map(() => allocator.allocate(items));
+
+      // All should produce same order
+      const firstOrder = results[0].allocated.map(i => i.path).join(',');
+      for (const r of results) {
+        expect(r.allocated.map(i => i.path).join(',')).toBe(firstOrder);
+      }
+    });
+  });
+
+  describe('custom budgets validation', () => {
+    it('throws when custom budget percentages do not sum to 1', () => {
+      const invalidBudgets = [
+        { category: 'changed' as const, percentage: 0.50, minTokens: 100, maxTokens: 1000 },
+        { category: 'impacted' as const, percentage: 0.30, minTokens: 100, maxTokens: 1000 },
+        // Missing 0.20 - only sums to 0.80
+      ];
+
+      expect(() => new BudgetAllocator(10000, invalidBudgets)).toThrow(BudgetValidationError);
+    });
+
+    it('throws when minTokens > maxTokens', () => {
+      const invalidBudgets = [
+        { category: 'changed' as const, percentage: 1.0, minTokens: 1000, maxTokens: 100 },
+      ];
+
+      expect(() => new BudgetAllocator(10000, invalidBudgets)).toThrow(BudgetValidationError);
+    });
+
+    it('throws on duplicate categories', () => {
+      const invalidBudgets = [
+        { category: 'changed' as const, percentage: 0.50, minTokens: 100, maxTokens: 1000 },
+        { category: 'changed' as const, percentage: 0.50, minTokens: 100, maxTokens: 1000 },
+      ];
+
+      expect(() => new BudgetAllocator(10000, invalidBudgets)).toThrow(BudgetValidationError);
+    });
   });
 });

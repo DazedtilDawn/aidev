@@ -37,7 +37,8 @@ export class ImpactAnalyzer {
 
     return {
       changedFiles: changes,
-      affectedComponents: Array.from(allAffected),
+      // Sort for deterministic output
+      affectedComponents: Array.from(allAffected).sort(),
       impactEdges,
       summary: {
         filesChanged: changes.length,
@@ -61,17 +62,24 @@ export class ImpactAnalyzer {
     return direct;
   }
 
-  // O(1) lookup using precomputed dependentsByComponent map (per ChatGPT review)
+  // O(1) lookup using precomputed dependentsByComponent map
+  // Fixed per ChatGPT review: use index cursor (O(1)) instead of shift() (O(n))
+  // Fixed per ChatGPT review: sort dependents for deterministic traversal order
   private findTransitiveComponents(direct: Set<string>): Set<string> {
     const all = new Set(direct);
-    const queue = [...direct];
+    // Sort initial queue for deterministic starting order
+    const queue = Array.from(direct).sort();
+    let head = 0;
 
-    while (queue.length > 0) {
-      const current = queue.shift()!;
+    while (head < queue.length) {
+      const current = queue[head]!;
+      head += 1;
 
       // Use reverse lookup map instead of iterating all components
-      const dependents = this.model.dependentsByComponent.get(current) || [];
-      for (const dependent of dependents) {
+      const dependents = this.model.dependentsByComponent.get(current) ?? [];
+      // Sort dependents for deterministic insertion order
+      const orderedDependents = dependents.length <= 1 ? dependents : [...dependents].sort();
+      for (const dependent of orderedDependents) {
         if (!all.has(dependent)) {
           all.add(dependent);
           queue.push(dependent);
@@ -112,10 +120,13 @@ export class ImpactAnalyzer {
 
   private calculateDistances(direct: Set<string>): Map<string, number> {
     const distances = new Map<string, number>();
-    const queue: [string, number][] = [...direct].map(c => [c, 0]);
+    // Sort for deterministic processing order
+    const queue: [string, number][] = Array.from(direct).sort().map(c => [c, 0]);
+    let head = 0;
 
-    while (queue.length > 0) {
-      const [current, dist] = queue.shift()!;
+    while (head < queue.length) {
+      const [current, dist] = queue[head]!;
+      head += 1;
 
       if (distances.has(current) && distances.get(current)! <= dist) {
         continue;
@@ -123,8 +134,10 @@ export class ImpactAnalyzer {
       distances.set(current, dist);
 
       // Use reverse lookup for transitive dependencies
-      const dependents = this.model.dependentsByComponent.get(current) || [];
-      for (const dependent of dependents) {
+      const dependents = this.model.dependentsByComponent.get(current) ?? [];
+      // Sort for deterministic order
+      const orderedDependents = dependents.length <= 1 ? dependents : [...dependents].sort();
+      for (const dependent of orderedDependents) {
         queue.push([dependent, dist + 1]);
       }
     }

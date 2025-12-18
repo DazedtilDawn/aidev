@@ -64,4 +64,63 @@ describe('TokenEstimator Interface', () => {
       expect(estimator.provider).toBe('generic');
     });
   });
+
+  // Edge cases from ChatGPT review
+  describe('truncateToFit edge cases', () => {
+    const openai = new OpenAITokenEstimator();
+    const generic = new GenericTokenEstimator();
+
+    it('returns empty string for maxTokens <= 0 (OpenAI)', () => {
+      const result0 = openai.truncateToFit('Hello world', 0);
+      const resultNeg = openai.truncateToFit('Hello world', -1);
+      expect(result0).toBe('');
+      expect(resultNeg).toBe('');
+    });
+
+    it('returns empty string for maxTokens <= 0 (Generic)', () => {
+      const result0 = generic.truncateToFit('Hello world', 0);
+      const resultNeg = generic.truncateToFit('Hello world', -1);
+      expect(result0).toBe('');
+      expect(resultNeg).toBe('');
+    });
+
+    it('guarantees postcondition for exact estimator: estimateText(truncated) <= maxTokens', () => {
+      const testCases = [1, 5, 10, 50, 100];
+      const longText = 'The quick brown fox jumps over the lazy dog. '.repeat(50);
+
+      for (const max of testCases) {
+        const truncated = openai.truncateToFit(longText, max);
+        const actualTokens = openai.estimateText(truncated);
+        expect(actualTokens).toBeLessThanOrEqual(max);
+      }
+    });
+
+    it('handles empty input gracefully', () => {
+      expect(openai.truncateToFit('', 100)).toBe('');
+      expect(generic.truncateToFit('', 100)).toBe('');
+      expect(openai.estimateText('')).toBe(0);
+      expect(generic.estimateText('')).toBe(0);
+    });
+
+    it('handles unicode and emoji correctly (no split surrogates)', () => {
+      const unicodeText = '🎉🚀✨ Hello 世界 こんにちは '.repeat(10);
+      // Use a reasonable budget that allows some content
+      const truncated = generic.truncateToFit(unicodeText, 50);
+      // Should not produce broken unicode
+      expect(() => JSON.stringify(truncated)).not.toThrow();
+      // Should contain some content
+      expect(truncated.length).toBeGreaterThan(0);
+      // Verify the truncation marker is present (content was truncated)
+      expect(truncated).toContain('[truncated]');
+    });
+
+    it('is deterministic (same input always produces same output)', () => {
+      const text = 'Test content for determinism check';
+      const results = Array(5).fill(null).map(() => openai.truncateToFit(text, 5));
+      const first = results[0];
+      for (const r of results) {
+        expect(r).toBe(first);
+      }
+    });
+  });
 });

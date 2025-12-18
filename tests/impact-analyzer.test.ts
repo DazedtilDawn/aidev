@@ -72,4 +72,117 @@ describe('ImpactAnalyzer', () => {
     expect(report.affectedComponents).toHaveLength(0);
     expect(report.summary.componentsAffected).toBe(0);
   });
+
+  // Edge cases from ChatGPT review
+  it('handles cycles in dependency graph without infinite loop', () => {
+    const cyclicModel: ProjectModel = {
+      config: { version: '1.0.0', scan: { exclude: [], max_files: 10000 }, providers: { default: 'claude', token_budgets: {} } },
+      components: [
+        { name: 'a', paths: ['src/a/**'], depends_on: ['b'], contracts: [] },
+        { name: 'b', paths: ['src/b/**'], depends_on: ['a'], contracts: [] }, // cycle: a <-> b
+      ],
+      declaredEdges: [],
+      discoveredEdges: [],
+      dependentsByComponent: new Map([
+        ['a', ['b']], // b depends on a
+        ['b', ['a']], // a depends on b (cycle)
+      ]),
+    };
+
+    const changes: ChangedFile[] = [{ path: 'src/a/file.ts', changeType: 'modified' }];
+    const analyzer = new ImpactAnalyzer(cyclicModel);
+    const report = analyzer.analyze(changes);
+
+    // Should terminate and include both
+    expect(report.affectedComponents).toContain('a');
+    expect(report.affectedComponents).toContain('b');
+    expect(report.affectedComponents).toHaveLength(2);
+  });
+
+  it('handles self-loops without duplication', () => {
+    const selfLoopModel: ProjectModel = {
+      config: { version: '1.0.0', scan: { exclude: [], max_files: 10000 }, providers: { default: 'claude', token_budgets: {} } },
+      components: [
+        { name: 'recursive', paths: ['src/recursive/**'], depends_on: ['recursive'], contracts: [] },
+      ],
+      declaredEdges: [],
+      discoveredEdges: [],
+      dependentsByComponent: new Map([
+        ['recursive', ['recursive']], // self-loop
+      ]),
+    };
+
+    const changes: ChangedFile[] = [{ path: 'src/recursive/file.ts', changeType: 'modified' }];
+    const analyzer = new ImpactAnalyzer(selfLoopModel);
+    const report = analyzer.analyze(changes);
+
+    // Should not duplicate or infinite loop
+    expect(report.affectedComponents).toHaveLength(1);
+    expect(report.affectedComponents).toContain('recursive');
+  });
+
+  it('produces deterministic output regardless of adjacency list order', () => {
+    // Two models with same graph but different insertion order
+    const model1: ProjectModel = {
+      config: { version: '1.0.0', scan: { exclude: [], max_files: 10000 }, providers: { default: 'claude', token_budgets: {} } },
+      components: [
+        { name: 'core', paths: ['src/core/**'], depends_on: [], contracts: [] },
+        { name: 'x', paths: ['src/x/**'], depends_on: ['core'], contracts: [] },
+        { name: 'y', paths: ['src/y/**'], depends_on: ['core'], contracts: [] },
+        { name: 'z', paths: ['src/z/**'], depends_on: ['core'], contracts: [] },
+      ],
+      declaredEdges: [],
+      discoveredEdges: [],
+      dependentsByComponent: new Map([
+        ['core', ['z', 'y', 'x']], // reverse alphabetical
+        ['x', []],
+        ['y', []],
+        ['z', []],
+      ]),
+    };
+
+    const model2: ProjectModel = {
+      config: { version: '1.0.0', scan: { exclude: [], max_files: 10000 }, providers: { default: 'claude', token_budgets: {} } },
+      components: [
+        { name: 'core', paths: ['src/core/**'], depends_on: [], contracts: [] },
+        { name: 'x', paths: ['src/x/**'], depends_on: ['core'], contracts: [] },
+        { name: 'y', paths: ['src/y/**'], depends_on: ['core'], contracts: [] },
+        { name: 'z', paths: ['src/z/**'], depends_on: ['core'], contracts: [] },
+      ],
+      declaredEdges: [],
+      discoveredEdges: [],
+      dependentsByComponent: new Map([
+        ['core', ['x', 'y', 'z']], // alphabetical order
+        ['x', []],
+        ['y', []],
+        ['z', []],
+      ]),
+    };
+
+    const changes: ChangedFile[] = [{ path: 'src/core/file.ts', changeType: 'modified' }];
+
+    const report1 = new ImpactAnalyzer(model1).analyze(changes);
+    const report2 = new ImpactAnalyzer(model2).analyze(changes);
+
+    // Output must be identical regardless of input order
+    expect(report1.affectedComponents).toEqual(report2.affectedComponents);
+    expect(report1.impactEdges.map(e => e.target)).toEqual(report2.impactEdges.map(e => e.target));
+  });
+
+  it('handles multiple starting nodes deterministically', () => {
+    const changes: ChangedFile[] = [
+      { path: 'src/auth/login.ts', changeType: 'modified' },
+      { path: 'src/db/connection.ts', changeType: 'modified' },
+    ];
+    const analyzer = new ImpactAnalyzer(mockModel);
+
+    // Run multiple times
+    const results = Array(5).fill(null).map(() => analyzer.analyze(changes));
+
+    // All runs should produce identical output
+    const first = JSON.stringify(results[0].affectedComponents);
+    for (const r of results) {
+      expect(JSON.stringify(r.affectedComponents)).toBe(first);
+    }
+  });
 });
