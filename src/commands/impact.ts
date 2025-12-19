@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import chalk from 'chalk';
 import { loadProjectModel } from '../model/index.js';
 import { GitService } from '../git/index.js';
@@ -11,7 +11,15 @@ interface ImpactOptions {
   staged?: boolean;
   file?: string;
   json?: boolean;
-  minConfidence?: string;
+  minConfidence?: number;
+}
+
+function parsePercent(value: string): number {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0 || n > 100) {
+    throw new InvalidArgumentError(`--min-confidence must be a number from 0 to 100 (got "${value}")`);
+  }
+  return n;
 }
 
 export const impactCommand = new Command('impact')
@@ -20,7 +28,7 @@ export const impactCommand = new Command('impact')
   .option('--staged', 'Analyze staged changes')
   .option('--file <path>', 'Analyze specific file')
   .option('--json', 'Output as JSON')
-  .option('--min-confidence <percent>', 'Filter impacts below confidence threshold (0-100)', '0')
+  .option('--min-confidence <percent>', 'Filter impacts below confidence threshold (0-100)', parsePercent, 0)
   .action(async (options: ImpactOptions) => {
     try {
       const projectPath = process.cwd();
@@ -63,14 +71,22 @@ export const impactCommand = new Command('impact')
       const analyzer = new ImpactAnalyzer(model);
       let report = analyzer.analyze(changedFiles);
 
-      // Apply confidence filter
-      const minConfidence = parseInt(options.minConfidence || '0', 10) / 100;
+      // Apply confidence filter (uses best-edge-per-target semantics)
+      const minConfidence = (options.minConfidence ?? 0) / 100;
       if (minConfidence > 0) {
+        // Build map of strongest edge confidence per target file
+        const changedPaths = new Set(changedFiles.map(f => normalizePath(f.path)));
+        const bestByTarget = new Map<string, number>();
+        for (const e of report.fileImpactEdges) {
+          const prev = bestByTarget.get(e.target) ?? 0;
+          if (e.confidence > prev) bestByTarget.set(e.target, e.confidence);
+        }
+
         const filteredFileEdges = report.fileImpactEdges.filter(e => e.confidence >= minConfidence);
-        const filteredFiles = report.affectedFiles.filter(f => {
-          const edge = report.fileImpactEdges.find(e => e.target === f);
-          return !edge || edge.confidence >= minConfidence;
-        });
+        // Include file if: it's a changed file OR its best edge meets threshold
+        const filteredFiles = report.affectedFiles.filter(f =>
+          changedPaths.has(normalizePath(f)) || (bestByTarget.get(f) ?? 0) >= minConfidence
+        );
         const filteredImpactEdges = report.impactEdges.filter(e => e.confidence >= minConfidence);
 
         report = {
