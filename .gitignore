@@ -3,3 +3,5 @@ dist/
 .aidev/cache/
 *.log
 .env
+# Review artifacts (contain example secret patterns that trigger push protection)
+llm_bus/tasks/

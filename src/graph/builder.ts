@@ -78,19 +78,48 @@ export class GraphBuilder {
    * - Relative paths (./foo, ../bar)
    * - Extension inference (.ts, .tsx, .js, etc.)
    * - Index file resolution (./dir -> ./dir/index.ts)
+   * - TypeScript ESM imports with .js extension (./foo.js -> ./foo.ts)
    */
   private resolveImportPath(fromPath: string, importSource: string): string | null {
     const fromDir = this.dirname(fromPath);
 
     // Resolve the relative path manually (to keep paths relative)
-    const resolved = this.resolvePath(fromDir, importSource);
+    let resolved = this.resolvePath(fromDir, importSource);
+
+    // Handle TypeScript ESM convention: .js imports map to .ts files
+    // (TypeScript uses .js extension in imports even for .ts files)
+    const jsExtensions = ['.js', '.jsx', '.mjs', '.cjs'];
+    const tsReplacements: [string, string][] = [
+      ['.js', '.ts'],
+      ['.jsx', '.tsx'],
+      ['.mjs', '.mts'],
+      ['.cjs', '.cts'],
+    ];
+
+    // First try exact match if import has extension
+    if (this.files.has(resolved)) {
+      return resolved;
+    }
+
+    // Try replacing .js -> .ts for ESM TypeScript
+    for (const [jsExt, tsExt] of tsReplacements) {
+      if (resolved.endsWith(jsExt)) {
+        const tsPath = resolved.slice(0, -jsExt.length) + tsExt;
+        if (this.files.has(tsPath)) {
+          return tsPath;
+        }
+      }
+    }
+
+    // Strip any existing extension for extension inference
+    const baseResolved = this.stripKnownExtension(resolved);
 
     // Common extensions to try (in priority order)
     const extensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.py', '.pyi', ''];
 
     // Try direct file with extensions
     for (const ext of extensions) {
-      const withExt = resolved + ext;
+      const withExt = baseResolved + ext;
       if (this.files.has(withExt)) {
         return withExt;
       }
@@ -99,13 +128,26 @@ export class GraphBuilder {
     // Try index file in directory
     for (const ext of extensions) {
       if (!ext) continue; // Skip empty extension for index files
-      const indexPath = this.joinPath(resolved, `index${ext}`);
+      const indexPath = this.joinPath(baseResolved, `index${ext}`);
       if (this.files.has(indexPath)) {
         return indexPath;
       }
     }
 
     return null;
+  }
+
+  /**
+   * Strip known extensions from a path for extension inference.
+   */
+  private stripKnownExtension(path: string): string {
+    const knownExtensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.mts', '.cts', '.py', '.pyi'];
+    for (const ext of knownExtensions) {
+      if (path.endsWith(ext)) {
+        return path.slice(0, -ext.length);
+      }
+    }
+    return path;
   }
 
   /**

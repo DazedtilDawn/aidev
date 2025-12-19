@@ -175,6 +175,205 @@ describe('GraphBuilder', () => {
     });
   });
 
+  describe('TypeScript ESM extension mapping', () => {
+    it('resolves .js imports to .ts files', () => {
+      const builder = new GraphBuilder();
+
+      builder.addScanResult('src/app.ts', {
+        imports: [{
+          source: './utils.js',  // TypeScript ESM convention
+          symbols: ['helper'],
+          isDefault: false,
+          isNamespace: false,
+          line: 1,
+        }],
+        exports: [],
+        calls: [],
+        typeReferences: [],
+      });
+
+      builder.addScanResult('src/utils.ts', {
+        imports: [],
+        exports: ['helper'],
+        calls: [],
+        typeReferences: [],
+      });
+
+      const edges = builder.buildEdges();
+
+      expect(edges.some(e =>
+        e.source === 'src/app.ts' &&
+        e.target === 'src/utils.ts'
+      )).toBe(true);
+    });
+
+    it('resolves .jsx imports to .tsx files', () => {
+      const builder = new GraphBuilder();
+
+      builder.addScanResult('src/app.tsx', {
+        imports: [{
+          source: './Button.jsx',
+          symbols: ['Button'],
+          isDefault: false,
+          isNamespace: false,
+          line: 1,
+        }],
+        exports: [],
+        calls: [],
+        typeReferences: [],
+      });
+
+      builder.addScanResult('src/Button.tsx', {
+        imports: [],
+        exports: ['Button'],
+        calls: [],
+        typeReferences: [],
+      });
+
+      const edges = builder.buildEdges();
+
+      expect(edges.some(e =>
+        e.source === 'src/app.tsx' &&
+        e.target === 'src/Button.tsx'
+      )).toBe(true);
+    });
+
+    // Additional ESM edge cases per code review
+    it('resolves .mjs imports', () => {
+      const builder = new GraphBuilder();
+
+      builder.addScanResult('src/app.mjs', {
+        imports: [{
+          source: './utils.mjs',
+          symbols: ['helper'],
+          isDefault: false,
+          isNamespace: false,
+          line: 1,
+        }],
+        exports: [],
+        calls: [],
+        typeReferences: [],
+      });
+
+      builder.addScanResult('src/utils.mjs', {
+        imports: [],
+        exports: ['helper'],
+        calls: [],
+        typeReferences: [],
+      });
+
+      const edges = builder.buildEdges();
+
+      expect(edges.some(e =>
+        e.source === 'src/app.mjs' &&
+        e.target === 'src/utils.mjs'
+      )).toBe(true);
+    });
+
+    it('resolves imports with multiple potential extensions', () => {
+      const builder = new GraphBuilder();
+
+      // Import without extension, .ts file exists
+      builder.addScanResult('src/app.ts', {
+        imports: [{
+          source: './helper',
+          symbols: ['helper'],
+          isDefault: false,
+          isNamespace: false,
+          line: 1,
+        }],
+        exports: [],
+        calls: [],
+        typeReferences: [],
+      });
+
+      builder.addScanResult('src/helper.ts', {
+        imports: [],
+        exports: ['helper'],
+        calls: [],
+        typeReferences: [],
+      });
+
+      const edges = builder.buildEdges();
+
+      expect(edges.some(e =>
+        e.source === 'src/app.ts' &&
+        e.target === 'src/helper.ts'
+      )).toBe(true);
+    });
+
+    it('prefers .ts over .js when both exist', () => {
+      const builder = new GraphBuilder();
+
+      builder.addScanResult('src/app.ts', {
+        imports: [{
+          source: './shared',
+          symbols: ['util'],
+          isDefault: false,
+          isNamespace: false,
+          line: 1,
+        }],
+        exports: [],
+        calls: [],
+        typeReferences: [],
+      });
+
+      // Both .ts and .js exist
+      builder.addScanResult('src/shared.ts', {
+        imports: [],
+        exports: ['util'],
+        calls: [],
+        typeReferences: [],
+      });
+
+      builder.addScanResult('src/shared.js', {
+        imports: [],
+        exports: ['util'],
+        calls: [],
+        typeReferences: [],
+      });
+
+      const edges = builder.buildEdges();
+
+      // Should resolve to .ts file
+      expect(edges.some(e =>
+        e.source === 'src/app.ts' &&
+        e.target === 'src/shared.ts'
+      )).toBe(true);
+    });
+
+    it('resolves index file with .js extension import', () => {
+      const builder = new GraphBuilder();
+
+      builder.addScanResult('src/app.ts', {
+        imports: [{
+          source: './components/index.js',
+          symbols: ['Button'],
+          isDefault: false,
+          isNamespace: false,
+          line: 1,
+        }],
+        exports: [],
+        calls: [],
+        typeReferences: [],
+      });
+
+      builder.addScanResult('src/components/index.ts', {
+        imports: [],
+        exports: ['Button'],
+        calls: [],
+        typeReferences: [],
+      });
+
+      const edges = builder.buildEdges();
+
+      expect(edges.some(e =>
+        e.source === 'src/app.ts' &&
+        e.target === 'src/components/index.ts'
+      )).toBe(true);
+    });
+  });
+
   describe('edge cases', () => {
     it('handles empty scan results', () => {
       const builder = new GraphBuilder();

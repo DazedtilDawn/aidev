@@ -1,0 +1,6 @@
+name: example-component
+description: Example component - replace with your actual component
+paths:
+  - src/example/**
+depends_on: []
+contracts: []

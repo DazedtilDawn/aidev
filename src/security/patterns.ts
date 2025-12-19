@@ -91,4 +91,77 @@ export const DEFAULT_PATTERNS: SecretPattern[] = [
     pattern: /Bearer\s+[a-zA-Z0-9\-_\.]{20,}/gi,
     severity: 'medium',
   },
+  // Additional patterns added per code review
+  {
+    name: 'google_api_key',
+    type: 'api_key',
+    pattern: /AIza[0-9A-Za-z\-_]{35}/g,
+    severity: 'high',
+  },
+  {
+    name: 'stripe_live_key',
+    type: 'api_key',
+    pattern: /sk_live_[a-zA-Z0-9]{24,}/g,
+    severity: 'critical',
+  },
+  {
+    name: 'stripe_test_key',
+    type: 'api_key',
+    pattern: /sk_test_[a-zA-Z0-9]{24,}/g,
+    severity: 'high',
+  },
+  {
+    name: 'stripe_publishable_key',
+    type: 'api_key',
+    pattern: /pk_live_[a-zA-Z0-9]{24,}/g,
+    severity: 'medium',
+  },
+  {
+    name: 'sendgrid_key',
+    type: 'api_key',
+    pattern: /SG\.[a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{20,}/g,
+    severity: 'high',
+  },
+  {
+    name: 'twilio_token',
+    type: 'token',
+    pattern: /SK[a-f0-9]{32}/g,
+    severity: 'high',
+  },
+  {
+    name: 'discord_token',
+    type: 'token',
+    pattern: /[MN][A-Za-z\d]{23,}\.[\w-]{6}\.[\w-]{27}/g,
+    severity: 'critical',
+  },
+  {
+    name: 'heroku_api_key',
+    type: 'api_key',
+    pattern: /[hH]eroku[a-zA-Z0-9_\-]*["']?\s*[:=]\s*["']?[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}["']?/gi,
+    severity: 'high',
+  },
+  {
+    name: 'azure_connection_string',
+    type: 'connection_string',
+    pattern: /DefaultEndpointsProtocol=https?;AccountName=[^;]+;AccountKey=[a-zA-Z0-9+\/=]{40,}/gi,
+    severity: 'critical',
+  },
+  {
+    name: 'basic_auth_url',
+    type: 'credential',
+    pattern: /https?:\/\/[^:]+:[^@]+@[^\s"']+/gi,
+    severity: 'high',
+  },
+  {
+    name: 'npm_token',
+    type: 'token',
+    pattern: /npm_[a-zA-Z0-9]{36}/g,
+    severity: 'high',
+  },
+  {
+    name: 'pypi_token',
+    type: 'token',
+    pattern: /pypi-[A-Za-z0-9_\-]{85,}/g,
+    severity: 'high',
+  },
 ];

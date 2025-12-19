@@ -1,1 +1,2 @@
-export { loadProjectModel, ProjectModel } from './loader.js';
+export { loadProjectModel } from './loader.js';
+export type { ProjectModel } from './loader.js';

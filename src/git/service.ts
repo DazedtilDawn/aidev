@@ -1,4 +1,4 @@
-import simpleGit, { SimpleGit } from 'simple-git';
+import { simpleGit, SimpleGit } from 'simple-git';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parseDiffOutput, ChangedFile } from './diff-parser.js';

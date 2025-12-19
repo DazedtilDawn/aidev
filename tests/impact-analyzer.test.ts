@@ -185,4 +185,115 @@ describe('ImpactAnalyzer', () => {
       expect(JSON.stringify(r.affectedComponents)).toBe(first);
     }
   });
+
+  describe('hybrid edge analysis', () => {
+    it('includes file-level impact from discovered edges', () => {
+      const modelWithDiscovered: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          {
+            source: 'src/auth/login.ts',
+            target: 'src/utils/crypto.ts',
+            type: 'import',
+            confidence: 0.95,
+            detection_method: 'ast',
+          },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithDiscovered);
+      const report = analyzer.analyze(changes);
+
+      // Should include file-level impact from discovered edges
+      expect(report.affectedFiles).toContain('src/utils/crypto.ts');
+    });
+
+    it('includes files that import the changed file', () => {
+      const modelWithDiscovered: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          {
+            source: 'src/api/handler.ts',
+            target: 'src/auth/login.ts',
+            type: 'import',
+            confidence: 0.95,
+            detection_method: 'ast',
+          },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithDiscovered);
+      const report = analyzer.analyze(changes);
+
+      // handler.ts imports login.ts, so handler.ts is affected
+      expect(report.affectedFiles).toContain('src/api/handler.ts');
+    });
+
+    it('merges declared and discovered edges, keeping higher confidence', () => {
+      const modelWithBoth: ProjectModel = {
+        ...mockModel,
+        declaredEdges: [
+          { source: 'src/a.ts', target: 'src/b.ts', type: 'import', confidence: 1.0, detection_method: 'declared' },
+        ],
+        discoveredEdges: [
+          { source: 'src/a.ts', target: 'src/b.ts', type: 'import', confidence: 0.7, detection_method: 'regex' },
+        ],
+      };
+
+      const analyzer = new ImpactAnalyzer(modelWithBoth);
+      const merged = analyzer.getMergedEdges();
+
+      // Should keep higher confidence version
+      const edge = merged.find(e => e.source === 'src/a.ts' && e.target === 'src/b.ts');
+      expect(edge?.confidence).toBe(1.0);
+      expect(edge?.detection_method).toBe('declared');
+    });
+
+    it('includes both directions of discovered edges', () => {
+      const modelWithDiscovered: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          { source: 'src/auth/login.ts', target: 'src/utils/crypto.ts', type: 'import', confidence: 0.95, detection_method: 'ast' },
+          { source: 'src/api/handler.ts', target: 'src/auth/login.ts', type: 'import', confidence: 0.95, detection_method: 'ast' },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithDiscovered);
+      const report = analyzer.analyze(changes);
+
+      // login.ts imports crypto.ts (downstream)
+      expect(report.affectedFiles).toContain('src/utils/crypto.ts');
+      // handler.ts imports login.ts (upstream - files that depend on changed file)
+      expect(report.affectedFiles).toContain('src/api/handler.ts');
+    });
+
+    it('calculates transitive file impact', () => {
+      const modelWithDiscovered: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          { source: 'src/auth/login.ts', target: 'src/utils/crypto.ts', type: 'import', confidence: 0.95, detection_method: 'ast' },
+          { source: 'src/utils/crypto.ts', target: 'src/utils/base64.ts', type: 'import', confidence: 0.95, detection_method: 'ast' },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithDiscovered);
+      const report = analyzer.analyze(changes);
+
+      // Transitive: login.ts -> crypto.ts -> base64.ts
+      expect(report.affectedFiles).toContain('src/utils/crypto.ts');
+      expect(report.affectedFiles).toContain('src/utils/base64.ts');
+    });
+
+    it('includes changed files in affectedFiles', () => {
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(mockModel);
+      const report = analyzer.analyze(changes);
+
+      expect(report.affectedFiles).toContain('src/auth/login.ts');
+    });
+  });
 });

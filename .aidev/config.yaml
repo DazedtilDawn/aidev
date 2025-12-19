@@ -1,0 +1,14 @@
+version: 1.0.0
+scan:
+  exclude:
+    - node_modules/
+    - dist/
+    - vendor/
+    - .git/
+    - coverage/
+  max_files: 10000
+providers:
+  default: claude
+  token_budgets:
+    claude: 100000
+    openai: 100000

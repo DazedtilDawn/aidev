@@ -1,8 +1,8 @@
-export { TokenEstimator } from './estimator.js';
+export type { TokenEstimator } from './estimator.js';
 export { OpenAITokenEstimator } from './openai.js';
 export { GenericTokenEstimator } from './generic.js';
 
-import { TokenEstimator } from './estimator.js';
+import type { TokenEstimator } from './estimator.js';
 import { OpenAITokenEstimator } from './openai.js';
 import { GenericTokenEstimator } from './generic.js';
 

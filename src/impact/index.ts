@@ -1,1 +1,2 @@
-export { ImpactAnalyzer, ImpactReport, ImpactEdge } from './analyzer.js';
+export { ImpactAnalyzer } from './analyzer.js';
+export type { ImpactReport, ImpactEdge, FileImpactEdge } from './analyzer.js';

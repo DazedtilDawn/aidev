@@ -61,14 +61,14 @@ export class TypeScriptScanner implements LanguageScanner {
     // Walk child nodes
     for (const key of Object.keys(node)) {
       if (key === 'parent') continue; // Avoid circular reference
-      const child = (node as Record<string, unknown>)[key];
+      const child = (node as unknown as Record<string, unknown>)[key];
       if (Array.isArray(child)) {
         for (const item of child) {
-          if (item && typeof item === 'object' && 'type' in item) {
+          if (item && typeof item === 'object' && 'type' in (item as object)) {
             this.walkNode(item as TSESTree.Node, result);
           }
         }
-      } else if (child && typeof child === 'object' && 'type' in child) {
+      } else if (child && typeof child === 'object' && 'type' in (child as object)) {
         this.walkNode(child as TSESTree.Node, result);
       }
     }
@@ -167,7 +167,7 @@ export class TypeScriptScanner implements LanguageScanner {
       result.typeReferences.push(typeName.name);
     } else if (typeName.type === AST_NODE_TYPES.TSQualifiedName) {
       // Handle qualified names like Namespace.Type
-      let current: TSESTree.TSQualifiedName | TSESTree.Identifier = typeName;
+      let current = typeName.left;
       while (current.type === AST_NODE_TYPES.TSQualifiedName) {
         current = current.left;
       }

@@ -1,0 +1,471 @@
+version: 1.0.0
+generated: '2025-12-18T19:15:23.541Z'
+edges:
+  - source: src/cli.ts
+    target: src/commands/impact.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './commands/impact.js'
+  - source: src/cli.ts
+    target: src/commands/init.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './commands/init.js'
+  - source: src/cli.ts
+    target: src/commands/prompt.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './commands/prompt.js'
+  - source: src/cli.ts
+    target: src/commands/sync.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './commands/sync.js'
+  - source: src/commands/impact.ts
+    target: src/errors/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../errors/index.js'
+  - source: src/commands/impact.ts
+    target: src/git/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../git/index.js'
+  - source: src/commands/impact.ts
+    target: src/impact/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../impact/index.js'
+  - source: src/commands/impact.ts
+    target: src/model/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../model/index.js'
+  - source: src/commands/impact.ts
+    target: src/utils/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../utils/index.js'
+  - source: src/commands/prompt.ts
+    target: src/errors/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../errors/index.js'
+  - source: src/commands/prompt.ts
+    target: src/git/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../git/index.js'
+  - source: src/commands/prompt.ts
+    target: src/impact/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../impact/index.js'
+  - source: src/commands/prompt.ts
+    target: src/model/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../model/index.js'
+  - source: src/commands/prompt.ts
+    target: src/prompt/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../prompt/index.js'
+  - source: src/commands/prompt.ts
+    target: src/providers/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../providers/index.js'
+  - source: src/commands/sync.ts
+    target: src/errors/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../errors/index.js'
+  - source: src/commands/sync.ts
+    target: src/graph/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../graph/index.js'
+  - source: src/commands/sync.ts
+    target: src/model/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../model/index.js'
+  - source: src/commands/sync.ts
+    target: src/scanners/python.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../scanners/python.js'
+  - source: src/commands/sync.ts
+    target: src/scanners/typescript.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../scanners/typescript.js'
+  - source: src/commands/sync.ts
+    target: src/utils/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../utils/index.js'
+  - source: src/git/service.ts
+    target: src/git/diff-parser.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './diff-parser.js'
+  - source: src/graph/builder.ts
+    target: src/scanners/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../scanners/index.js'
+  - source: src/graph/builder.ts
+    target: src/schemas/edge.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../schemas/edge.js'
+  - source: src/graph/builder.ts
+    target: src/utils/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../utils/index.js'
+  - source: src/impact/analyzer.ts
+    target: src/git/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../git/index.js'
+  - source: src/impact/analyzer.ts
+    target: src/model/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../model/index.js'
+  - source: src/impact/analyzer.ts
+    target: src/schemas/edge.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../schemas/edge.js'
+  - source: src/impact/analyzer.ts
+    target: src/utils/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../utils/index.js'
+  - source: src/model/loader.ts
+    target: src/schemas/component.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../schemas/component.js'
+  - source: src/model/loader.ts
+    target: src/schemas/config.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../schemas/config.js'
+  - source: src/model/loader.ts
+    target: src/schemas/edge.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../schemas/edge.js'
+  - source: src/prompt/allocator.ts
+    target: src/tokens/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../tokens/index.js'
+  - source: src/prompt/generator.ts
+    target: src/impact/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../impact/index.js'
+  - source: src/prompt/generator.ts
+    target: src/prompt/allocator.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './allocator.js'
+  - source: src/prompt/generator.ts
+    target: src/security/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../security/index.js'
+  - source: src/prompt/generator.ts
+    target: src/tokens/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../tokens/index.js'
+  - source: src/prompt/generator.ts
+    target: src/utils/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../utils/index.js'
+  - source: src/providers/base.ts
+    target: src/prompt/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../prompt/index.js'
+  - source: src/providers/claude.ts
+    target: src/prompt/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../prompt/index.js'
+  - source: src/providers/claude.ts
+    target: src/providers/base.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './base.js'
+  - source: src/providers/index.ts
+    target: src/providers/base.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './base.js'
+  - source: src/providers/index.ts
+    target: src/providers/claude.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './claude.js'
+  - source: src/providers/index.ts
+    target: src/providers/openai.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './openai.js'
+  - source: src/providers/openai.ts
+    target: src/prompt/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../prompt/index.js'
+  - source: src/providers/openai.ts
+    target: src/providers/base.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './base.js'
+  - source: src/scanners/python.ts
+    target: src/scanners/base.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './base.js'
+  - source: src/scanners/typescript.ts
+    target: src/scanners/base.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './base.js'
+  - source: src/security/redactor.ts
+    target: src/security/patterns.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './patterns.js'
+  - source: src/tokens/generic.ts
+    target: src/tokens/estimator.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './estimator.js'
+  - source: src/tokens/index.ts
+    target: src/tokens/estimator.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './estimator.js'
+  - source: src/tokens/index.ts
+    target: src/tokens/generic.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './generic.js'
+  - source: src/tokens/index.ts
+    target: src/tokens/openai.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './openai.js'
+  - source: src/tokens/openai.ts
+    target: src/tokens/estimator.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from './estimator.js'
+  - source: tests/allocator.test.ts
+    target: src/prompt/allocator.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/prompt/allocator.js'
+  - source: tests/determinism.test.ts
+    target: src/utils/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/utils/index.js'
+  - source: tests/errors.test.ts
+    target: src/errors/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/errors/index.js'
+  - source: tests/generator.test.ts
+    target: src/impact/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/impact/index.js'
+  - source: tests/generator.test.ts
+    target: src/prompt/generator.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/prompt/generator.js'
+  - source: tests/git-diff.test.ts
+    target: src/git/diff-parser.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/git/diff-parser.js'
+  - source: tests/git-service.test.ts
+    target: src/git/service.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/git/service.js'
+  - source: tests/graph-builder.test.ts
+    target: src/graph/builder.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/graph/builder.js'
+  - source: tests/impact-analyzer.test.ts
+    target: src/git/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/git/index.js'
+  - source: tests/impact-analyzer.test.ts
+    target: src/impact/analyzer.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/impact/analyzer.js'
+  - source: tests/impact-analyzer.test.ts
+    target: src/model/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/model/index.js'
+  - source: tests/model-loader.test.ts
+    target: src/model/loader.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/model/loader.js'
+  - source: tests/providers.test.ts
+    target: src/prompt/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/prompt/index.js'
+  - source: tests/providers.test.ts
+    target: src/providers/claude.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/providers/claude.js'
+  - source: tests/providers.test.ts
+    target: src/providers/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/providers/index.js'
+  - source: tests/providers.test.ts
+    target: src/providers/openai.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/providers/openai.js'
+  - source: tests/redactor.test.ts
+    target: src/security/redactor.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/security/redactor.js'
+  - source: tests/scanner-py.test.ts
+    target: src/scanners/python.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/scanners/python.js'
+  - source: tests/scanner-ts.test.ts
+    target: src/scanners/typescript.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/scanners/typescript.js'
+  - source: tests/schemas.test.ts
+    target: src/schemas/component.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/schemas/component.js'
+  - source: tests/schemas.test.ts
+    target: src/schemas/edge.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/schemas/edge.js'
+  - source: tests/token-estimator.test.ts
+    target: src/tokens/generic.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/tokens/generic.js'
+  - source: tests/token-estimator.test.ts
+    target: src/tokens/index.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/tokens/index.js'
+  - source: tests/token-estimator.test.ts
+    target: src/tokens/openai.ts
+    type: import
+    confidence: 0.95
+    detection_method: ast
+    evidence: import from '../src/tokens/openai.js'
