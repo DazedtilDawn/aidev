@@ -1,0 +1,5 @@
+name: git
+description: Git integration (diff parsing, file operations)
+paths:
+  - src/git/**
+depends_on: []

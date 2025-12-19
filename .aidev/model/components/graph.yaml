@@ -1,0 +1,6 @@
+name: graph
+description: Dependency graph builder from scan results
+paths:
+  - src/graph/**
+depends_on:
+  - scanners

@@ -1,0 +1,6 @@
+name: providers
+description: Provider-specific prompt formatters (Claude, OpenAI)
+paths:
+  - src/providers/**
+depends_on:
+  - tokens

@@ -1,0 +1,8 @@
+name: impact
+description: Impact analysis engine for code changes
+paths:
+  - src/impact/**
+depends_on:
+  - model
+  - git
+  - graph

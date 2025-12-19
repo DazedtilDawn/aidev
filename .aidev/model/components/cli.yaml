@@ -1,0 +1,10 @@
+name: cli
+description: Command-line interface entry point and commands
+paths:
+  - src/cli.ts
+  - src/commands/**
+depends_on:
+  - impact
+  - prompt
+  - model
+  - git

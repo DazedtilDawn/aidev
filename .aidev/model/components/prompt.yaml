@@ -1,0 +1,9 @@
+name: prompt
+description: Prompt pack generator and budget allocator
+paths:
+  - src/prompt/**
+depends_on:
+  - impact
+  - tokens
+  - security
+  - providers

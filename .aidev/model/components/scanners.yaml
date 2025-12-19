@@ -1,0 +1,5 @@
+name: scanners
+description: Language-specific AST/regex scanners
+paths:
+  - src/scanners/**
+depends_on: []

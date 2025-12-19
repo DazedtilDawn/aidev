@@ -1,0 +1,5 @@
+name: security
+description: Secret redaction and security patterns
+paths:
+  - src/security/**
+depends_on: []

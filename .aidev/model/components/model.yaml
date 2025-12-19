@@ -1,0 +1,7 @@
+name: model
+description: Project model loader (components, edges, config)
+paths:
+  - src/model/**
+  - src/schemas/**
+depends_on:
+  - utils
