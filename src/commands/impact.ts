@@ -11,6 +11,7 @@ interface ImpactOptions {
   staged?: boolean;
   file?: string;
   json?: boolean;
+  minConfidence?: string;
 }
 
 export const impactCommand = new Command('impact')
@@ -19,6 +20,7 @@ export const impactCommand = new Command('impact')
   .option('--staged', 'Analyze staged changes')
   .option('--file <path>', 'Analyze specific file')
   .option('--json', 'Output as JSON')
+  .option('--min-confidence <percent>', 'Filter impacts below confidence threshold (0-100)', '0')
   .action(async (options: ImpactOptions) => {
     try {
       const projectPath = process.cwd();
@@ -59,7 +61,29 @@ export const impactCommand = new Command('impact')
 
       // Analyze impact
       const analyzer = new ImpactAnalyzer(model);
-      const report = analyzer.analyze(changedFiles);
+      let report = analyzer.analyze(changedFiles);
+
+      // Apply confidence filter
+      const minConfidence = parseInt(options.minConfidence || '0', 10) / 100;
+      if (minConfidence > 0) {
+        const filteredFileEdges = report.fileImpactEdges.filter(e => e.confidence >= minConfidence);
+        const filteredFiles = report.affectedFiles.filter(f => {
+          const edge = report.fileImpactEdges.find(e => e.target === f);
+          return !edge || edge.confidence >= minConfidence;
+        });
+        const filteredImpactEdges = report.impactEdges.filter(e => e.confidence >= minConfidence);
+
+        report = {
+          ...report,
+          affectedFiles: filteredFiles,
+          fileImpactEdges: filteredFileEdges,
+          impactEdges: filteredImpactEdges,
+          summary: {
+            ...report.summary,
+            filesAffected: filteredFiles.length,
+          },
+        };
+      }
 
       // Output
       if (options.json) {
