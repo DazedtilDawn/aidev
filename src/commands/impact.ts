@@ -2,7 +2,7 @@ import { Command, InvalidArgumentError } from 'commander';
 import chalk from 'chalk';
 import { loadProjectModel } from '../model/index.js';
 import { GitService } from '../git/index.js';
-import { ImpactAnalyzer } from '../impact/index.js';
+import { ImpactAnalyzer, EvidenceTrail } from '../impact/index.js';
 import { exitCodeFor, formatError, GitError } from '../errors/index.js';
 import { normalizePath } from '../utils/index.js';
 
@@ -12,6 +12,7 @@ interface ImpactOptions {
   file?: string;
   json?: boolean;
   minConfidence?: number;
+  explain?: string;
 }
 
 function parsePercent(value: string): number {
@@ -29,6 +30,7 @@ export const impactCommand = new Command('impact')
   .option('--file <path>', 'Analyze specific file')
   .option('--json', 'Output as JSON')
   .option('--min-confidence <percent>', 'Filter impacts below confidence threshold (0-100)', parsePercent, 0)
+  .option('--explain <file>', 'Show detailed evidence trail for why a file is impacted')
   .action(async (options: ImpactOptions) => {
     try {
       const projectPath = process.cwd();
@@ -69,6 +71,21 @@ export const impactCommand = new Command('impact')
 
       // Analyze impact
       const analyzer = new ImpactAnalyzer(model);
+
+      // Handle --explain flag
+      if (options.explain) {
+        const trail = analyzer.explainImpact(options.explain, changedFiles);
+
+        if (options.json) {
+          console.log(JSON.stringify(trail, null, 2));
+        } else if (trail === null) {
+          console.log(chalk.yellow(`\nFile "${options.explain}" is not impacted by the current changes.\n`));
+        } else {
+          printEvidenceTrail(trail);
+        }
+        return;
+      }
+
       let report = analyzer.analyze(changedFiles);
 
       // Apply confidence filter (uses best-edge-per-target semantics)
@@ -161,5 +178,48 @@ function printReport(report: ReturnType<ImpactAnalyzer['analyze']>): void {
     }
   }
 
+  console.log('');
+}
+
+function printEvidenceTrail(trail: EvidenceTrail): void {
+  console.log(chalk.bold('\n📋 Evidence Trail\n'));
+
+  // Target file and impact score
+  console.log(chalk.cyan('Target File:'), trail.targetFile);
+  const scoreColor = trail.impactScore > 0.7 ? chalk.red : trail.impactScore > 0.4 ? chalk.yellow : chalk.green;
+  console.log(chalk.cyan('Impact Score:'), scoreColor(`${Math.round(trail.impactScore * 100)}%`));
+
+  if (trail.isDirectlyChanged) {
+    console.log(chalk.cyan('Status:'), chalk.green('Directly Changed'));
+    console.log(chalk.dim('\nThis file was directly modified in the current changes.'));
+    console.log('');
+    return;
+  }
+
+  // Chain details
+  if (trail.chain.length > 0) {
+    console.log(chalk.cyan('\nDependency Chain:'));
+    console.log(chalk.dim(`(${trail.chain.length} hop${trail.chain.length > 1 ? 's' : ''})\n`));
+
+    for (const node of trail.chain) {
+      const confColor = node.confidence > 0.8 ? chalk.green : node.confidence > 0.5 ? chalk.yellow : chalk.red;
+
+      console.log(chalk.bold(`Step ${node.step}:`));
+      console.log(`  ${chalk.cyan('From:')} ${node.from}`);
+      console.log(`  ${chalk.cyan('  To:')} ${node.to}`);
+      console.log(`  ${chalk.cyan('Type:')} ${node.edgeType}`);
+
+      if (node.evidence) {
+        console.log(`  ${chalk.cyan('Evidence:')} ${chalk.dim(node.evidence)}`);
+      }
+
+      console.log(`  ${chalk.cyan('Confidence:')} ${confColor(`${Math.round(node.confidence * 100)}%`)} (${node.detectionMethod})`);
+      console.log('');
+    }
+  }
+
+  // Summary
+  console.log(chalk.cyan('Summary:'));
+  console.log(`  ${trail.summary}`);
   console.log('');
 }

@@ -296,4 +296,141 @@ describe('ImpactAnalyzer', () => {
       expect(report.affectedFiles).toContain('src/auth/login.ts');
     });
   });
+
+  describe('explainImpact (evidence trail)', () => {
+    it('returns trail for directly changed file', () => {
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(mockModel);
+      const trail = analyzer.explainImpact('src/auth/login.ts', changes);
+
+      expect(trail.targetFile).toBe('src/auth/login.ts');
+      expect(trail.isDirectlyChanged).toBe(true);
+      expect(trail.impactScore).toBe(1.0);
+      expect(trail.chain).toHaveLength(0); // No chain needed for direct change
+    });
+
+    it('returns trail with chain for transitively affected file', () => {
+      const modelWithDiscovered: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          { source: 'src/auth/login.ts', target: 'src/utils/crypto.ts', type: 'import', confidence: 0.95, detection_method: 'ast', evidence: "import { hash } from './crypto'" },
+          { source: 'src/utils/crypto.ts', target: 'src/utils/base64.ts', type: 'import', confidence: 0.90, detection_method: 'ast', evidence: "import { encode } from './base64'" },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithDiscovered);
+      const trail = analyzer.explainImpact('src/utils/base64.ts', changes);
+
+      expect(trail.targetFile).toBe('src/utils/base64.ts');
+      expect(trail.isDirectlyChanged).toBe(false);
+      expect(trail.chain.length).toBeGreaterThan(0);
+
+      // Chain should show path from login.ts -> crypto.ts -> base64.ts
+      expect(trail.chain[0].from).toBe('src/auth/login.ts');
+      expect(trail.chain[trail.chain.length - 1].to).toBe('src/utils/base64.ts');
+    });
+
+    it('includes edge evidence in chain', () => {
+      const modelWithEvidence: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          { source: 'src/auth/login.ts', target: 'src/utils/crypto.ts', type: 'import', confidence: 0.95, detection_method: 'ast', evidence: "import { hash } from './crypto'" },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithEvidence);
+      const trail = analyzer.explainImpact('src/utils/crypto.ts', changes);
+
+      expect(trail.chain).toHaveLength(1);
+      expect(trail.chain[0].evidence).toBe("import { hash } from './crypto'");
+      expect(trail.chain[0].edgeType).toBe('import');
+      expect(trail.chain[0].detectionMethod).toBe('ast');
+    });
+
+    it('finds shortest path to target', () => {
+      const modelWithMultiplePaths: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          // Short path: a -> b
+          { source: 'src/a.ts', target: 'src/b.ts', type: 'import', confidence: 0.95, detection_method: 'ast' },
+          // Long path: a -> c -> d -> b
+          { source: 'src/a.ts', target: 'src/c.ts', type: 'import', confidence: 0.90, detection_method: 'ast' },
+          { source: 'src/c.ts', target: 'src/d.ts', type: 'import', confidence: 0.90, detection_method: 'ast' },
+          { source: 'src/d.ts', target: 'src/b.ts', type: 'import', confidence: 0.90, detection_method: 'ast' },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/a.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithMultiplePaths);
+      const trail = analyzer.explainImpact('src/b.ts', changes);
+
+      // Should find 1-hop path, not 3-hop path
+      expect(trail.chain).toHaveLength(1);
+      expect(trail.chain[0].from).toBe('src/a.ts');
+      expect(trail.chain[0].to).toBe('src/b.ts');
+    });
+
+    it('returns null for file not in impact', () => {
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(mockModel);
+      const trail = analyzer.explainImpact('src/unrelated/file.ts', changes);
+
+      expect(trail).toBeNull();
+    });
+
+    it('handles upstream impact (files that import changed file)', () => {
+      const modelWithUpstream: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          // handler.ts imports login.ts (upstream direction)
+          { source: 'src/api/handler.ts', target: 'src/auth/login.ts', type: 'import', confidence: 0.95, detection_method: 'ast', evidence: "import { login } from '../auth/login'" },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithUpstream);
+      const trail = analyzer.explainImpact('src/api/handler.ts', changes);
+
+      expect(trail).not.toBeNull();
+      expect(trail!.chain).toHaveLength(1);
+      // The chain should show the dependency relationship
+      expect(trail!.summary).toContain('import');
+    });
+
+    it('calculates impact score based on path', () => {
+      const modelWithPath: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          { source: 'src/a.ts', target: 'src/b.ts', type: 'import', confidence: 0.90, detection_method: 'ast' },
+          { source: 'src/b.ts', target: 'src/c.ts', type: 'import', confidence: 0.80, detection_method: 'ast' },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/a.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithPath);
+      const trail = analyzer.explainImpact('src/c.ts', changes);
+
+      // Impact score should decay with distance
+      expect(trail!.impactScore).toBeLessThan(1.0);
+      expect(trail!.impactScore).toBeGreaterThan(0);
+    });
+
+    it('generates meaningful summary', () => {
+      const modelWithPath: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          { source: 'src/auth/login.ts', target: 'src/utils/crypto.ts', type: 'import', confidence: 0.95, detection_method: 'ast' },
+        ],
+      };
+
+      const changes: ChangedFile[] = [{ path: 'src/auth/login.ts', changeType: 'modified' }];
+      const analyzer = new ImpactAnalyzer(modelWithPath);
+      const trail = analyzer.explainImpact('src/utils/crypto.ts', changes);
+
+      expect(trail!.summary).toBeTruthy();
+      expect(trail!.summary.length).toBeGreaterThan(20);
+    });
+  });
 });

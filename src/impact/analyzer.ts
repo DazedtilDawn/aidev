@@ -22,6 +22,30 @@ export interface FileImpactEdge {
   distance: number;
 }
 
+/**
+ * A single step in an evidence trail showing how impact propagates.
+ */
+export interface EvidenceNode {
+  step: number;
+  from: string;
+  to: string;
+  edgeType: Edge['type'];
+  evidence: string | null;
+  confidence: number;
+  detectionMethod: Edge['detection_method'];
+}
+
+/**
+ * Complete evidence trail explaining why a file is impacted.
+ */
+export interface EvidenceTrail {
+  targetFile: string;
+  impactScore: number;
+  isDirectlyChanged: boolean;
+  chain: EvidenceNode[];
+  summary: string;
+}
+
 export interface ImpactReport {
   changedFiles: ChangedFile[];
   affectedComponents: string[];
@@ -357,5 +381,217 @@ export class ImpactAnalyzer {
       if (direct.has(dep)) return dep;
     }
     return component.depends_on[0] || 'unknown';
+  }
+
+  /**
+   * Generate detailed evidence trail explaining why a specific file is impacted.
+   * Uses BFS to find the shortest path from any changed file to the target.
+   *
+   * @param targetFile - The file to explain impact for
+   * @param changes - The changed files that started the impact analysis
+   * @returns Evidence trail or null if file is not impacted
+   */
+  explainImpact(targetFile: string, changes: ChangedFile[]): EvidenceTrail | null {
+    const normalizedTarget = normalizePath(targetFile);
+    const changedPaths = new Set(changes.map(c => normalizePath(c.path)));
+
+    // Check if target is a directly changed file
+    if (changedPaths.has(normalizedTarget)) {
+      return {
+        targetFile: normalizedTarget,
+        impactScore: 1.0,
+        isDirectlyChanged: true,
+        chain: [],
+        summary: `${normalizedTarget} was directly modified.`,
+      };
+    }
+
+    // BFS to find shortest path from any changed file to target
+    const path = this.findShortestPath(changedPaths, normalizedTarget);
+
+    if (!path) {
+      return null;
+    }
+
+    // Build the evidence chain from the path
+    const chain = this.buildEvidenceChain(path);
+
+    // Calculate impact score based on path length and edge confidences
+    const impactScore = this.calculatePathImpactScore(chain);
+
+    // Generate human-readable summary
+    const summary = this.generateTrailSummary(path, chain, impactScore);
+
+    return {
+      targetFile: normalizedTarget,
+      impactScore,
+      isDirectlyChanged: false,
+      chain,
+      summary,
+    };
+  }
+
+  /**
+   * Find shortest path from any changed file to target using BFS.
+   * Returns array of files in the path, or null if no path exists.
+   */
+  private findShortestPath(changedPaths: Set<string>, target: string): string[] | null {
+    const allEdges = this.getMergedEdges();
+
+    // Build adjacency lists for both directions
+    const forwardEdges = new Map<string, string[]>(); // source -> targets
+    const reverseEdges = new Map<string, string[]>(); // target -> sources
+
+    for (const edge of allEdges) {
+      const src = normalizePath(edge.source);
+      const tgt = normalizePath(edge.target);
+
+      // Forward: files that this file imports
+      const fwd = forwardEdges.get(src) || [];
+      fwd.push(tgt);
+      forwardEdges.set(src, fwd);
+
+      // Reverse: files that import this file
+      const rev = reverseEdges.get(tgt) || [];
+      rev.push(src);
+      reverseEdges.set(tgt, rev);
+    }
+
+    // BFS from changed files
+    const visited = new Map<string, string | null>(); // file -> previous file in path
+    const queue: string[] = [];
+
+    for (const changed of changedPaths) {
+      visited.set(changed, null);
+      queue.push(changed);
+    }
+
+    let head = 0;
+    while (head < queue.length) {
+      const current = queue[head++];
+
+      if (current === target) {
+        // Reconstruct path
+        const path: string[] = [];
+        let node: string | null = current;
+        while (node !== null) {
+          path.unshift(node);
+          node = visited.get(node) ?? null;
+        }
+        return path;
+      }
+
+      // Explore forward edges (files this file imports)
+      const forward = forwardEdges.get(current) || [];
+      for (const next of forward.sort()) {
+        if (!visited.has(next)) {
+          visited.set(next, current);
+          queue.push(next);
+        }
+      }
+
+      // Explore reverse edges (files that import this file)
+      const reverse = reverseEdges.get(current) || [];
+      for (const next of reverse.sort()) {
+        if (!visited.has(next)) {
+          visited.set(next, current);
+          queue.push(next);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Build evidence chain from a path by looking up edge details.
+   */
+  private buildEvidenceChain(path: string[]): EvidenceNode[] {
+    if (path.length < 2) return [];
+
+    const allEdges = this.getMergedEdges();
+    const chain: EvidenceNode[] = [];
+
+    // Build edge lookup for both directions
+    const edgeMap = new Map<string, Edge>();
+    for (const edge of allEdges) {
+      const fwdKey = `${normalizePath(edge.source)}|${normalizePath(edge.target)}`;
+      const revKey = `${normalizePath(edge.target)}|${normalizePath(edge.source)}`;
+      edgeMap.set(fwdKey, edge);
+      edgeMap.set(revKey, edge); // Also store reverse for upstream lookup
+    }
+
+    for (let i = 0; i < path.length - 1; i++) {
+      const from = path[i];
+      const to = path[i + 1];
+      const key = `${from}|${to}`;
+      const revKey = `${to}|${from}`;
+
+      // Try forward edge first, then reverse
+      const edge = edgeMap.get(key) || edgeMap.get(revKey);
+
+      chain.push({
+        step: i + 1,
+        from,
+        to,
+        edgeType: edge?.type || 'import',
+        evidence: edge?.evidence || null,
+        confidence: edge?.confidence || 0.5,
+        detectionMethod: edge?.detection_method || 'heuristic',
+      });
+    }
+
+    return chain;
+  }
+
+  /**
+   * Calculate overall impact score based on path length and edge confidences.
+   */
+  private calculatePathImpactScore(chain: EvidenceNode[]): number {
+    if (chain.length === 0) return 1.0;
+
+    // Start with base confidence and decay with distance
+    let score = 1.0;
+
+    for (const node of chain) {
+      // Multiply by edge confidence with distance decay
+      score *= node.confidence * Math.max(0.8, 1 - (node.step - 1) * 0.05);
+    }
+
+    // Clamp between 0 and 1
+    return Math.max(0, Math.min(1, score));
+  }
+
+  /**
+   * Generate human-readable summary of the evidence trail.
+   */
+  private generateTrailSummary(path: string[], chain: EvidenceNode[], impactScore: number): string {
+    const start = path[0];
+    const end = path[path.length - 1];
+    const hops = chain.length;
+
+    if (hops === 0) {
+      return `${end} was directly modified.`;
+    }
+
+    // Get the primary edge type in the chain
+    const edgeTypes = [...new Set(chain.map(n => n.edgeType))];
+    const primaryType = edgeTypes[0] || 'import';
+
+    const typeDescriptions: Record<string, string> = {
+      'import': 'import chain',
+      'call': 'call chain',
+      'type_reference': 'type reference chain',
+      'extends': 'inheritance chain',
+      'uses_table': 'database dependency',
+      'publishes_event': 'event dependency',
+      'calls_endpoint': 'API dependency',
+      'reads_config': 'configuration dependency',
+      'test_covers': 'test coverage',
+    };
+
+    const typeDesc = typeDescriptions[primaryType] || 'dependency chain';
+
+    return `Changes to ${start} propagate to ${end} via ${typeDesc} (${hops} hop${hops > 1 ? 's' : ''}, ${Math.round(impactScore * 100)}% confidence).`;
   }
 }
