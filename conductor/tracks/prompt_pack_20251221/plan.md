@@ -2,8 +2,8 @@
 
 ## Phase 1: Core Architecture & Interfaces
 - [x] Task: Define the `PromptFormatter` interface and base types in `src/prompt/types.ts`. [669919c]
-- [ ] Task: Create the `PromptGenerator` class in `src/prompt/generator.ts` (refactor existing if needed) to orchestrate the formatting process.
-- [ ] Task: Implement a mock/test formatter to verify the pipeline.
+- [x] Task: Create the `PromptGenerator` class in `src/prompt/generator.ts` (refactor existing if needed) to orchestrate the formatting process. [1af61de]
+- [x] Task: Implement a mock/test formatter to verify the pipeline. [1af61de]
 - [ ] Task: Conductor - User Manual Verification 'Core Architecture & Interfaces' (Protocol in workflow.md)
 
 ## Phase 2: Provider Formatters
