@@ -20,7 +20,7 @@
 - [x] Task: Conductor - User Manual Verification 'CLI Integration & Wiring' (Protocol in workflow.md) [7b297a2]
 
 ## Phase 4: Documentation & Polish
-- [ ] Task: Update `README.md` with usage examples for the new `prompt` command.
+- [x] Task: Update `README.md` with usage examples for the new `prompt` command. [02b4f39]
 - [ ] Task: Add JSDoc comments to public interfaces in the `prompt` module.
 - [ ] Task: Final verification run: generate prompt packs for the AIDEV codebase itself and verify content.
 - [ ] Task: Conductor - User Manual Verification 'Documentation & Polish' (Protocol in workflow.md)
