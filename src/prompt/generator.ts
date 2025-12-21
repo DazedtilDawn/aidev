@@ -6,6 +6,7 @@ import { SecretRedactor } from '../security/index.js';
 import { createEstimator, TokenEstimator } from '../tokens/index.js';
 import { BudgetAllocator, ContextItem, ContextCategory, AllocationResult } from './allocator.js';
 import { normalizePath } from '../utils/index.js';
+import { PromptFormatter, ContextBundle } from './types.js';
 
 export interface GeneratorOptions {
   projectPath: string;
@@ -14,6 +15,7 @@ export interface GeneratorOptions {
   taskDescription?: string;
   includeArchitecture?: boolean;
   includeContracts?: boolean;
+  formatter?: PromptFormatter;
 }
 
 export interface PromptPackManifest {
@@ -41,7 +43,7 @@ export interface PromptPackManifest {
 
 export interface PromptPack {
   manifest: PromptPackManifest;
-  content: string;
+  content: string | object;
   sections: PromptSection[];
   allocation: AllocationResult;
 }
@@ -68,8 +70,59 @@ export class PromptPackGenerator {
   }
 
   async generate(report: ImpactReport): Promise<PromptPack> {
-    // 1. Collect context items from various sources
-    const items = await this.collectContextItems(report);
+    if (this.options.formatter) {
+      return this.generateWithFormatter(report, this.options.formatter);
+    }
+    return this.generateLegacy(report);
+  }
+
+  private async generateWithFormatter(report: ImpactReport, formatter: PromptFormatter): Promise<PromptPack> {
+    // 1. Collect raw context items (no markdown formatting)
+    const items = await this.collectContextItems(report, true);
+
+    // 2. Allocate within budget
+    const allocation = this.allocator.allocate(items);
+
+    // 3. Build ContextBundle
+    const bundle: ContextBundle = {
+      timestamp: new Date().toISOString(),
+      impactReport: report,
+      files: allocation.allocated
+        .filter(i => i.path)
+        .map(i => ({
+          path: i.path!,
+          content: i.content,
+          isRedacted: i.content.includes('[REDACTED:')
+        })),
+      instructions: this.options.taskDescription,
+      tokenEstimate: allocation.totalTokens
+    };
+
+    // 4. Format
+    const content = formatter.format(bundle);
+
+    // 5. Generate manifest (contentHash depends on formatted output string)
+    // For object output, we JSON stringify for hashing
+    const contentString = typeof content === 'string' ? content : JSON.stringify(content);
+    
+    // We don't have "sections" in the same way for the formatted output, 
+    // but we can map the allocated items to dummy sections if needed or leave empty.
+    // Existing tests expect sections for legacy, but for new flow maybe not strictly required unless we want to keep parity.
+    // We will leave sections empty for now as it's a legacy concept.
+    
+    const manifest = this.buildManifest(report, allocation, contentString, []);
+
+    return {
+      manifest,
+      content,
+      sections: [],
+      allocation,
+    };
+  }
+
+  private async generateLegacy(report: ImpactReport): Promise<PromptPack> {
+    // 1. Collect context items with markdown formatting
+    const items = await this.collectContextItems(report, false);
 
     // 2. Allocate within budget
     const allocation = this.allocator.allocate(items);
@@ -91,7 +144,7 @@ export class PromptPackGenerator {
     };
   }
 
-  private async collectContextItems(report: ImpactReport): Promise<ContextItem[]> {
+  private async collectContextItems(report: ImpactReport, raw: boolean): Promise<ContextItem[]> {
     const items: ContextItem[] = [];
 
     // Task description (highest priority)
@@ -108,11 +161,15 @@ export class PromptPackGenerator {
     for (const change of report.changedFiles) {
       const content = this.readAndRedact(change.path);
       if (content) {
+        const itemContent = raw 
+          ? content 
+          : this.formatFileContent(change.path, content, change.changeType);
+          
         items.push({
           category: 'changed',
           path: normalizePath(change.path),
-          content: this.formatFileContent(change.path, content, change.changeType),
-          tokens: this.estimator.estimateText(content),
+          content: itemContent,
+          tokens: this.estimator.estimateText(itemContent),
           priority: 0.95,
           truncatable: true,
         });
@@ -130,11 +187,15 @@ export class PromptPackGenerator {
         const edge = report.fileImpactEdges.find(e => e.target === filePath);
         const confidence = edge?.confidence ?? 0.7;
 
+        const itemContent = raw 
+          ? content 
+          : this.formatFileContent(filePath, content, 'impacted');
+
         items.push({
           category: 'impacted',
           path: normalizePath(filePath),
-          content: this.formatFileContent(filePath, content, 'impacted'),
-          tokens: this.estimator.estimateText(content),
+          content: itemContent,
+          tokens: this.estimator.estimateText(itemContent),
           priority: confidence,
           truncatable: true,
         });
@@ -343,7 +404,14 @@ export class PromptPackGenerator {
     sections: PromptSection[]
   ): PromptPackManifest {
     // Hash content without timestamp for determinism
-    const hashableContent = this.buildContent(sections, true);
+    // If we're in new mode, content is the full string (or json string), which is already deterministic hopefully.
+    // For legacy, we rebuild content via buildContent(..., true).
+    
+    let hashableContent = content;
+    if (sections.length > 0 && !this.options.formatter) {
+        hashableContent = this.buildContent(sections, true);
+    }
+    
     const contentHash = createHash('sha256').update(hashableContent).digest('hex').slice(0, 12);
 
     const redactedCount = allocation.allocated.filter(

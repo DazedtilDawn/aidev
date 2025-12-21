@@ -265,4 +265,24 @@ export function login() { return API_KEY; }
 
     expect(pack.content).toContain('```css');
   });
+
+  it('uses provided formatter to generate output', async () => {
+    const mockFormatter = {
+      providerName: 'mock',
+      format: (bundle: any) => JSON.stringify(bundle.files.map((f: any) => f.path))
+    };
+
+    const generator = new PromptPackGenerator({
+      projectPath: TEST_DIR,
+      provider: 'generic',
+      budget: 10000,
+      formatter: mockFormatter
+    });
+
+    const pack = await generator.generate(mockReport);
+    const output = JSON.parse(pack.content as string);
+    
+    expect(output).toContain('src/auth/login.ts');
+    expect(output).toContain('src/utils/crypto.ts');
+  });
 });
