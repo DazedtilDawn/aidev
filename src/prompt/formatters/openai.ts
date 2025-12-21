@@ -3,8 +3,9 @@ import { PromptFormatter, ContextBundle } from '../types.js';
 export class OpenAIFormatter implements PromptFormatter {
   providerName = 'openai';
 
-  format(bundle: ContextBundle): object {
-    const systemMessage = this.buildSystemMessage(bundle);
+  format(bundle: ContextBundle, options?: { timestamp?: string }): object {
+    const timestamp = options?.timestamp || bundle.timestamp;
+    const systemMessage = this.buildSystemMessage(bundle, timestamp);
     const userMessage = this.buildUserMessage(bundle);
 
     return [
@@ -13,10 +14,10 @@ export class OpenAIFormatter implements PromptFormatter {
     ];
   }
 
-  private buildSystemMessage(bundle: ContextBundle): string {
+  private buildSystemMessage(bundle: ContextBundle, timestamp: string): string {
     const parts: string[] = [];
     parts.push('# AI Development Context Pack');
-    parts.push(`Generated: ${bundle.timestamp}`);
+    parts.push(`Generated: ${timestamp}`);
     parts.push(`Affected Components: ${bundle.impactReport.affectedComponents.join(', ')}`);
     parts.push(`Affected Files: ${bundle.impactReport.summary.filesAffected}`);
     parts.push('\nThis message contains the necessary code context to assist with a development task.');

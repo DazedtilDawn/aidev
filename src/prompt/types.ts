@@ -153,6 +153,7 @@ export interface PromptFormatter {
    * Transform the context bundle into provider-specific format.
    *
    * @param bundle - The complete context with files, instructions, and metadata
+   * @param options - Optional formatting configuration (e.g., fixed timestamp for determinism)
    * @returns Formatted output - string for XML/text, object for JSON APIs
    *
    * @example String output (Claude XML)
@@ -169,7 +170,7 @@ export interface PromptFormatter {
    * }
    * ```
    */
-  format(bundle: ContextBundle): string | object;
+  format(bundle: ContextBundle, options?: { timestamp?: string }): string | object;
 
   /**
    * Identifier for the target provider/format.

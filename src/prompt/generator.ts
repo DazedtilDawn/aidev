@@ -173,7 +173,11 @@ export class PromptPackGenerator {
     };
 
     // 4. Format
-    const content = formatter.format(bundle);
+    // Use a fixed timestamp for hashing to ensure determinism, 
+    // but the actual output content will use the real bundle timestamp if needed.
+    // However, buildManifest uses the result of this call.
+    // To ensure manifest.contentHash is deterministic, we MUST format with a fixed string.
+    const content = formatter.format(bundle, { timestamp: 'STABLE_TIMESTAMP' });
 
     // 5. Generate manifest (contentHash depends on formatted output string)
     const contentString = typeof content === 'string' ? content : JSON.stringify(content);

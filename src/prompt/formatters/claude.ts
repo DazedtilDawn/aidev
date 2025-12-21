@@ -3,11 +3,13 @@ import { PromptFormatter, ContextBundle } from '../types.js';
 export class ClaudeFormatter implements PromptFormatter {
   providerName = 'claude';
 
-  format(bundle: ContextBundle): string {
+  format(bundle: ContextBundle, options?: { timestamp?: string }): string {
     const parts: string[] = [];
 
+    const timestamp = options?.timestamp || bundle.timestamp;
+
     parts.push('<context>');
-    parts.push(`  <generated_at>${bundle.timestamp}</generated_at>`);
+    parts.push(`  <generated_at>${timestamp}</generated_at>`);
 
     if (bundle.instructions) {
       parts.push('  <instructions>');
