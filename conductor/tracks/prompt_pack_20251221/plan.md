@@ -6,12 +6,12 @@
 - [x] Task: Implement a mock/test formatter to verify the pipeline. [1af61de]
 - [x] Task: Conductor - User Manual Verification 'Core Architecture & Interfaces' (Protocol in workflow.md) [9be97d9]
 
-## Phase 2: Provider Formatters
+## Phase 2: Provider Formatters [checkpoint: 137296a]
 - [x] Task: Implement `ClaudeFormatter` in `src/prompt/formatters/claude.ts` (XML structure). [a07443e]
 - [x] Task: Write unit tests for `ClaudeFormatter` to ensure correct XML tagging and escaping. [a07443e]
 - [x] Task: Implement `OpenAIFormatter` in `src/prompt/formatters/openai.ts` (JSON/Message structure). [8db5d0c]
 - [x] Task: Write unit tests for `OpenAIFormatter` to ensure correct JSON structure and content placement. [8db5d0c]
-- [ ] Task: Conductor - User Manual Verification 'Provider Formatters' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Provider Formatters' (Protocol in workflow.md) [137296a]
 
 ## Phase 3: CLI Integration & Wiring
 - [ ] Task: Update `src/commands/prompt.ts` to wire up the `PromptGenerator` with the `ImpactAnalyzer` and `SecretRedactor`.
