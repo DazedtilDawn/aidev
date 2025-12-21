@@ -9,8 +9,8 @@
 ## Phase 2: Provider Formatters
 - [x] Task: Implement `ClaudeFormatter` in `src/prompt/formatters/claude.ts` (XML structure). [a07443e]
 - [x] Task: Write unit tests for `ClaudeFormatter` to ensure correct XML tagging and escaping. [a07443e]
-- [ ] Task: Implement `OpenAIFormatter` in `src/prompt/formatters/openai.ts` (JSON/Message structure).
-- [ ] Task: Write unit tests for `OpenAIFormatter` to ensure correct JSON structure and content placement.
+- [x] Task: Implement `OpenAIFormatter` in `src/prompt/formatters/openai.ts` (JSON/Message structure). [8db5d0c]
+- [x] Task: Write unit tests for `OpenAIFormatter` to ensure correct JSON structure and content placement. [8db5d0c]
 - [ ] Task: Conductor - User Manual Verification 'Provider Formatters' (Protocol in workflow.md)
 
 ## Phase 3: CLI Integration & Wiring
