@@ -7,8 +7,8 @@
 - [x] Task: Conductor - User Manual Verification 'Core Architecture & Interfaces' (Protocol in workflow.md) [9be97d9]
 
 ## Phase 2: Provider Formatters
-- [ ] Task: Implement `ClaudeFormatter` in `src/prompt/formatters/claude.ts` (XML structure).
-- [ ] Task: Write unit tests for `ClaudeFormatter` to ensure correct XML tagging and escaping.
+- [x] Task: Implement `ClaudeFormatter` in `src/prompt/formatters/claude.ts` (XML structure). [a07443e]
+- [x] Task: Write unit tests for `ClaudeFormatter` to ensure correct XML tagging and escaping. [a07443e]
 - [ ] Task: Implement `OpenAIFormatter` in `src/prompt/formatters/openai.ts` (JSON/Message structure).
 - [ ] Task: Write unit tests for `OpenAIFormatter` to ensure correct JSON structure and content placement.
 - [ ] Task: Conductor - User Manual Verification 'Provider Formatters' (Protocol in workflow.md)
