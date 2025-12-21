@@ -336,13 +336,21 @@ taskContext:
       goal: Implement MEM1 Internal State for long-horizon reasoning
       status: active
       createdAt: '2025-12-19T16:06:10.289Z'
+    - id: 0741727d-4936-463c-9f8d-fe389e5bdabc
+      goal: 'Complete Phase 2: Implement ClaudeFormatter and OpenAIFormatter'
+      status: active
+      createdAt: '2025-12-21T16:11:39.696Z'
   knownFacts:
     - id: a7fb54a8-9145-40d8-8a21-21da96336ce3
       fact: 'MEM1 uses two layers: facts (refreshable) and reasoning (accumulating)'
       source: MEM1 paper
       confidence: likely
       learnedAt: '2025-12-19T16:06:22.570Z'
-  openQuestions: []
+  openQuestions:
+    - id: 8ab16094-1b47-4d8e-bd10-b9f57a5bf234
+      question: Should formatters support async operations?
+      priority: medium
+      createdAt: '2025-12-21T16:11:53.733Z'
   constraints: []
   decisions:
     - id: 8385cdac-3358-4103-8328-39cca0a18b0b
@@ -352,7 +360,7 @@ taskContext:
   nextAction: null
 budget:
   maxTokens: 50000
-  currentTokens: 2721
+  currentTokens: 2827
 createdAt: '2025-12-19T16:06:10.289Z'
-updatedAt: '2025-12-19T16:06:47.426Z'
+updatedAt: '2025-12-21T16:11:53.734Z'
 sessionId: d642603d-99dc-4e54-a6df-ddd31258863f

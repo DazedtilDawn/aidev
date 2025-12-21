@@ -1,24 +1,41 @@
 {
-  "name": "aidev",
+  "name": "@anthropic/aidev",
   "version": "0.1.0",
-  "description": "AI-assisted development context generator",
+  "description": "AI-assisted development context generator - smart context for Claude & GPT",
   "type": "module",
   "bin": {
     "aidev": "./dist/cli.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",
-    "test": "vitest"
+    "test": "vitest",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [
     "ai",
+    "claude",
+    "gpt",
     "context",
     "development",
-    "prompt"
+    "prompt",
+    "code-assistant",
+    "llm"
   ],
-  "author": "",
+  "author": "Anthropic",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthropics/aidev"
+  },
+  "homepage": "https://github.com/anthropics/aidev#readme",
   "dependencies": {
     "@typescript-eslint/typescript-estree": "^8.50.0",
     "chalk": "^5.6.2",

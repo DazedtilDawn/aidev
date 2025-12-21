@@ -1,136 +1,146 @@
 # AIDEV
 
-AI-assisted development context generator. Analyzes code changes, maps their impact across a codebase, and generates curated context bundles for AI coding assistants.
+**Smart context for AI coding assistants.** Give Claude and GPT exactly the files they need.
 
-## Status
+## Quick Start
 
-**MVP Foundation Complete** (Tasks 1-10) | 74 tests passing
+```bash
+# In any git repo
+npx @anthropic/aidev init
+
+# See what your changes affect
+npx @anthropic/aidev impact --staged
+
+# Generate context for Claude
+npx @anthropic/aidev prompt --staged --task "Fix the auth bug" --copy
+```
+
+That's it. Paste into Claude or ChatGPT.
+
+## Install Globally (Optional)
+
+```bash
+npm install -g @anthropic/aidev
+
+# Now just use:
+aidev impact --staged
+aidev prompt --staged --copy
+```
+
+## What It Does
+
+When you change code, AIDEV figures out what else is affected:
+
+```
+$ aidev impact --staged
+
+📊 Impact Analysis Report
+
+Changed Files:
+  ✏️ src/auth/login.ts
+
+Affected Components:
+  📦 authentication
+  📦 user-service
+
+Impacted Files:
+  📄 src/auth/session.ts (95%)
+  📄 src/api/middleware.ts (87%)
+  📄 src/users/profile.ts (72%)
+```
+
+Then generates a context pack with just those files:
+
+```
+$ aidev prompt --staged --task "Add rate limiting" --budget 50000
+
+📦 Prompt Pack Summary
+  Tokens: 12,450 / 50,000 (25% utilization)
+  Files: 8 included, 2 redacted
+  Components: authentication, user-service
+
+✓ Copied to clipboard
+```
 
 ## Features
 
-### Implemented
+| Feature | What It Does |
+|---------|--------------|
+| **Impact Analysis** | Traces how changes ripple through your codebase |
+| **Smart Selection** | Picks the most relevant files within token budget |
+| **Secret Redaction** | Auto-removes API keys, passwords, tokens |
+| **Token Budgeting** | Fits context to model limits (Claude: 200k, GPT-4: 128k) |
+| **State Tracking** | Maintains reasoning context across sessions |
 
-- **Impact Analysis** - BFS traversal of dependency graph with O(1) dequeue and deterministic output
-- **Token Estimation** - Provider-neutral interface with OpenAI (tiktoken) and generic estimators
-- **Secret Redaction** - Pattern-based detection of API keys, passwords, tokens, connection strings
-- **Budget Allocation** - Category-based token budgets with validation and deterministic tie-breaking
-- **Git Integration** - Diff parsing, staged/unstaged changes, file content retrieval
-- **Project Model** - YAML-based component definitions with reverse dependency maps
+## Commands
 
-### Planned (Tasks 11-20)
+### `aidev init`
+Set up AIDEV in your project. Creates `.aidev/` config folder.
 
-- TypeScript/Python AST scanners
-- Discovered graph builder
-- Prompt pack generator
-- Provider adapters (Claude XML, OpenAI messages)
-- CLI command wiring
-- Model sync
-
-## Installation
+### `aidev impact`
+Analyze what your changes affect.
 
 ```bash
-npm install
-npm run build
+aidev impact --staged              # Staged changes
+aidev impact --diff HEAD~3         # Last 3 commits
+aidev impact --explain src/api.ts  # Why is this file impacted?
 ```
 
-## Usage
+### `aidev prompt`
+Generate context packs for AI assistants.
 
 ```bash
-# Analyze impact of changes
-npx aidev impact --staged
-npx aidev impact --diff HEAD~1..HEAD
-
-# Generate prompt pack (coming soon)
-npx aidev prompt --provider claude --budget 100000
-
-# Sync model with codebase (coming soon)
-npx aidev sync --check
+aidev prompt --staged --task "Review my changes"
+aidev prompt --staged --provider openai --budget 50000
+aidev prompt --staged --copy  # Copy to clipboard
 ```
 
-## Project Structure
+### `aidev sync`
+Discover file dependencies in your codebase.
 
+```bash
+aidev sync         # Update dependency graph
+aidev sync --check # Check for drift
 ```
-src/
-├── cli.ts                 # Entry point
-├── commands/              # CLI commands (impact, prompt, sync)
-├── schemas/               # Zod schemas (component, edge, config)
-├── model/                 # YAML model loader
-├── git/                   # Git diff parser and service
-├── impact/                # Impact analyzer with BFS traversal
-├── tokens/                # Token estimators (OpenAI, generic)
-├── security/              # Secret redactor
-├── prompt/                # Budget allocator
-├── errors/                # Error classes with exit codes
-└── utils/                 # Path normalization, stable sorting
+
+### `aidev state`
+Track objectives, decisions, and questions across sessions.
+
+```bash
+aidev state                                      # View current state
+aidev state --objective "Implement auth"         # Add goal
+aidev state --decide "Use JWT" --why "Standard"  # Record decision
+aidev state --refresh --staged                   # Update from code
 ```
+
+## How It Works
+
+1. **Dependency Graph** - Scans imports to build a dependency graph
+2. **Impact Analysis** - Traces how changes ripple through the graph
+3. **Smart Selection** - Prioritizes files by relevance within token budget
+4. **Secret Redaction** - Detects and removes API keys, passwords, tokens
+5. **Format Output** - Generates provider-optimized context
 
 ## Configuration
 
-Create `.aidev/` in your project root:
-
-```
-.aidev/
-├── config.yaml
-└── model/
-    └── components/
-        ├── auth.yaml
-        └── database.yaml
-```
-
-### Component Definition
+After `aidev init`, customize `.aidev/config.yaml`:
 
 ```yaml
-# .aidev/model/components/auth.yaml
-name: auth-service
-description: Authentication and authorization
-paths:
-  - src/auth/**
-  - src/middleware/auth.ts
-depends_on:
-  - database
-  - config
+# Token budgets per provider
+budgets:
+  claude: 150000
+  openai: 100000
+
+# Files to always exclude
+exclude:
+  - "**/*.test.ts"
+  - "**/node_modules/**"
 ```
 
-## Architecture
+## Requirements
 
-### Determinism Contract
-
-All operations are deterministic:
-- Path normalization (Windows → POSIX)
-- Stable sorting with locale-independent comparison
-- Sorted adjacency lists in BFS traversal
-- Frozen default configurations
-
-### Token Estimation
-
-| Provider | Estimator | Accuracy |
-|----------|-----------|----------|
-| OpenAI | tiktoken | Exact |
-| Claude | Generic (chars/3.5 + 10%) | Conservative |
-| Others | Generic | Conservative |
-
-### Error Handling
-
-| Error Type | Exit Code |
-|------------|-----------|
-| ConfigError | 10 |
-| GitError | 20 |
-| ParseError | 30 |
-| ScanError | 40 |
-| SecurityError | 50 |
-
-## Development
-
-```bash
-# Run tests
-npm test
-
-# Run in dev mode
-npm run dev -- impact --help
-
-# Build
-npm run build
-```
+- Node.js 18+
+- Git repository
 
 ## License
 
