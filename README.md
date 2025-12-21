@@ -91,7 +91,8 @@ Generate context packs for AI assistants.
 
 ```bash
 aidev prompt --staged --task "Review my changes"
-aidev prompt --staged --provider openai --budget 50000
+aidev prompt --provider claude --budget 150000 --arch   # Include architecture docs
+aidev prompt --provider openai --budget 50000 --output prompt.json
 aidev prompt --staged --copy  # Copy to clipboard
 ```
 
