@@ -1,0 +1,358 @@
+version: 1.0.0
+codeContext:
+  changedFiles:
+    - path: src/cli.ts
+      changeType: modified
+  affectedComponents:
+    - cli
+  affectedFiles:
+    - src/cli.ts
+    - src/commands/impact.ts
+    - src/commands/init.ts
+    - src/commands/prompt.ts
+    - src/commands/sync.ts
+    - src/errors/index.ts
+    - src/git/index.ts
+    - src/graph/builder.ts
+    - src/graph/index.ts
+    - src/impact/analyzer.ts
+    - src/impact/index.ts
+    - src/model/index.ts
+    - src/model/loader.ts
+    - src/prompt/allocator.ts
+    - src/prompt/generator.ts
+    - src/prompt/index.ts
+    - src/providers/base.ts
+    - src/providers/claude.ts
+    - src/providers/index.ts
+    - src/providers/openai.ts
+    - src/scanners/base.ts
+    - src/scanners/index.ts
+    - src/scanners/python.ts
+    - src/scanners/typescript.ts
+    - src/schemas/component.ts
+    - src/schemas/config.ts
+    - src/schemas/edge.ts
+    - src/security/index.ts
+    - src/tokens/estimator.ts
+    - src/tokens/generic.ts
+    - src/tokens/index.ts
+    - src/tokens/openai.ts
+    - src/utils/index.ts
+    - tests/allocator.test.ts
+    - tests/determinism.test.ts
+    - tests/errors.test.ts
+    - tests/generator.test.ts
+    - tests/graph-builder.test.ts
+    - tests/impact-analyzer.test.ts
+    - tests/model-loader.test.ts
+    - tests/providers.test.ts
+    - tests/scanner-py.test.ts
+    - tests/scanner-ts.test.ts
+    - tests/schemas.test.ts
+    - tests/token-estimator.test.ts
+  impactEdges:
+    - source: src/cli.ts
+      target: cli
+      type: direct
+      confidence: 1
+      distance: 0
+      reason: File matches component path pattern
+  fileImpactEdges:
+    - source: src/cli.ts
+      target: src/commands/impact.ts
+      type: import
+      confidence: 0.95
+      detection_method: ast
+      distance: 1
+    - source: src/cli.ts
+      target: src/commands/init.ts
+      type: import
+      confidence: 0.95
+      detection_method: ast
+      distance: 1
+    - source: src/cli.ts
+      target: src/commands/prompt.ts
+      type: import
+      confidence: 0.95
+      detection_method: ast
+      distance: 1
+    - source: src/cli.ts
+      target: src/commands/sync.ts
+      type: import
+      confidence: 0.95
+      detection_method: ast
+      distance: 1
+    - source: src/commands/impact.ts
+      target: src/errors/index.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/commands/impact.ts
+      target: src/git/index.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/commands/impact.ts
+      target: src/impact/index.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/commands/impact.ts
+      target: src/model/index.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/commands/impact.ts
+      target: src/utils/index.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/commands/prompt.ts
+      target: src/prompt/index.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/commands/prompt.ts
+      target: src/providers/index.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/commands/sync.ts
+      target: src/graph/index.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/commands/sync.ts
+      target: src/scanners/python.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/commands/sync.ts
+      target: src/scanners/typescript.ts
+      type: import
+      confidence: 0.855
+      detection_method: ast
+      distance: 2
+    - source: src/errors/index.ts
+      target: tests/errors.test.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/git/index.ts
+      target: src/impact/analyzer.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/git/index.ts
+      target: tests/impact-analyzer.test.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/graph/builder.ts
+      target: src/scanners/index.ts
+      type: import
+      confidence: 0.6649999999999999
+      detection_method: ast
+      distance: 4
+    - source: src/graph/builder.ts
+      target: tests/graph-builder.test.ts
+      type: import
+      confidence: 0.6649999999999999
+      detection_method: ast
+      distance: 4
+    - source: src/impact/analyzer.ts
+      target: src/schemas/edge.ts
+      type: import
+      confidence: 0.6649999999999999
+      detection_method: ast
+      distance: 4
+    - source: src/impact/index.ts
+      target: src/prompt/generator.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/impact/index.ts
+      target: tests/generator.test.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/model/loader.ts
+      target: src/schemas/component.ts
+      type: import
+      confidence: 0.475
+      detection_method: ast
+      distance: 6
+    - source: src/model/loader.ts
+      target: src/schemas/config.ts
+      type: import
+      confidence: 0.475
+      detection_method: ast
+      distance: 6
+    - source: src/model/loader.ts
+      target: tests/model-loader.test.ts
+      type: import
+      confidence: 0.475
+      detection_method: ast
+      distance: 6
+    - source: src/prompt/allocator.ts
+      target: tests/allocator.test.ts
+      type: import
+      confidence: 0.57
+      detection_method: ast
+      distance: 5
+    - source: src/prompt/generator.ts
+      target: src/prompt/allocator.ts
+      type: import
+      confidence: 0.6649999999999999
+      detection_method: ast
+      distance: 4
+    - source: src/prompt/generator.ts
+      target: src/security/index.ts
+      type: import
+      confidence: 0.6649999999999999
+      detection_method: ast
+      distance: 4
+    - source: src/prompt/generator.ts
+      target: src/tokens/index.ts
+      type: import
+      confidence: 0.6649999999999999
+      detection_method: ast
+      distance: 4
+    - source: src/prompt/index.ts
+      target: src/providers/base.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/prompt/index.ts
+      target: src/providers/claude.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/prompt/index.ts
+      target: src/providers/openai.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/prompt/index.ts
+      target: tests/providers.test.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/scanners/python.ts
+      target: src/scanners/base.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/scanners/python.ts
+      target: tests/scanner-py.test.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/scanners/typescript.ts
+      target: tests/scanner-ts.test.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/schemas/edge.ts
+      target: src/model/loader.ts
+      type: import
+      confidence: 0.57
+      detection_method: ast
+      distance: 5
+    - source: src/schemas/edge.ts
+      target: tests/schemas.test.ts
+      type: import
+      confidence: 0.57
+      detection_method: ast
+      distance: 5
+    - source: src/tokens/index.ts
+      target: src/tokens/estimator.ts
+      type: import
+      confidence: 0.57
+      detection_method: ast
+      distance: 5
+    - source: src/tokens/index.ts
+      target: src/tokens/generic.ts
+      type: import
+      confidence: 0.57
+      detection_method: ast
+      distance: 5
+    - source: src/tokens/index.ts
+      target: src/tokens/openai.ts
+      type: import
+      confidence: 0.57
+      detection_method: ast
+      distance: 5
+    - source: src/tokens/index.ts
+      target: tests/token-estimator.test.ts
+      type: import
+      confidence: 0.57
+      detection_method: ast
+      distance: 5
+    - source: src/utils/index.ts
+      target: src/graph/builder.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+    - source: src/utils/index.ts
+      target: tests/determinism.test.ts
+      type: import
+      confidence: 0.76
+      detection_method: ast
+      distance: 3
+  summary:
+    filesChanged: 1
+    componentsAffected: 1
+    filesAffected: 45
+    confidenceMean: 1
+  asOf: '2025-12-19T16:06:47.425Z'
+  gitRef: working
+taskContext:
+  objectives:
+    - id: e6aa0cb7-e327-4d59-b61e-2be89b97da95
+      goal: Implement MEM1 Internal State for long-horizon reasoning
+      status: active
+      createdAt: '2025-12-19T16:06:10.289Z'
+  knownFacts:
+    - id: a7fb54a8-9145-40d8-8a21-21da96336ce3
+      fact: 'MEM1 uses two layers: facts (refreshable) and reasoning (accumulating)'
+      source: MEM1 paper
+      confidence: likely
+      learnedAt: '2025-12-19T16:06:22.570Z'
+  openQuestions: []
+  constraints: []
+  decisions:
+    - id: 8385cdac-3358-4103-8328-39cca0a18b0b
+      what: Store Internal State in .aidev/session/
+      why: Keeps state with project, allows version control of session directory
+      decidedAt: '2025-12-19T16:06:34.790Z'
+  nextAction: null
+budget:
+  maxTokens: 50000
+  currentTokens: 2721
+createdAt: '2025-12-19T16:06:10.289Z'
+updatedAt: '2025-12-19T16:06:47.426Z'
+sessionId: d642603d-99dc-4e54-a6df-ddd31258863f
