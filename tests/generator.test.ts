@@ -71,7 +71,7 @@ This is the system architecture document.
     expect(pack.manifest.tokens.utilization).toBeLessThanOrEqual(1);
   });
 
-  it('includes changed files in output', async () => {
+  it('includes changed files in output (Claude XML)', async () => {
     const generator = new PromptPackGenerator({
       projectPath: TEST_DIR,
       provider: 'claude',
@@ -82,10 +82,10 @@ This is the system architecture document.
 
     expect(pack.content).toContain('src/auth/login.ts');
     expect(pack.content).toContain('login');
-    expect(pack.content).toContain('authenticate');
+    expect(pack.content).toContain('<file path="src/auth/login.ts">');
   });
 
-  it('includes impacted files in output', async () => {
+  it('includes impacted files in output (Claude XML)', async () => {
     const generator = new PromptPackGenerator({
       projectPath: TEST_DIR,
       provider: 'claude',
@@ -96,9 +96,10 @@ This is the system architecture document.
 
     expect(pack.content).toContain('src/utils/crypto.ts');
     expect(pack.content).toContain('hash');
+    expect(pack.content).toContain('<file path="src/utils/crypto.ts">');
   });
 
-  it('includes task description when provided', async () => {
+  it('includes task description when provided (Claude XML)', async () => {
     const generator = new PromptPackGenerator({
       projectPath: TEST_DIR,
       provider: 'claude',
@@ -109,10 +110,10 @@ This is the system architecture document.
     const pack = await generator.generate(mockReport);
 
     expect(pack.content).toContain('Fix the login authentication bug');
-    expect(pack.sections.some(s => s.category === 'task')).toBe(true);
+    expect(pack.content).toContain('<instructions>');
   });
 
-  it('includes architecture docs when enabled', async () => {
+  it('includes architecture docs when enabled (Claude XML)', async () => {
     const generator = new PromptPackGenerator({
       projectPath: TEST_DIR,
       provider: 'claude',
@@ -123,7 +124,7 @@ This is the system architecture document.
     const pack = await generator.generate(mockReport);
 
     expect(pack.content).toContain('Architecture');
-    expect(pack.sections.some(s => s.category === 'architecture')).toBe(true);
+    expect(pack.content).toContain('<file path=".aidev/docs/architecture.md">');
   });
 
   it('redacts secrets from content', async () => {
@@ -197,10 +198,10 @@ export function login() { return API_KEY; }
     expect(pack.manifest.components.names).toContain('auth');
   });
 
-  it('creates sections in correct order', async () => {
+  it('creates sections in correct order (Legacy Mode)', async () => {
     const generator = new PromptPackGenerator({
       projectPath: TEST_DIR,
-      provider: 'claude',
+      provider: 'generic', // Use generic to trigger legacy mode
       budget: 10000,
       taskDescription: 'Test task',
       includeArchitecture: true,
@@ -246,7 +247,7 @@ export function login() { return API_KEY; }
     expect(pack.manifest).toBeDefined();
   });
 
-  it('uses correct language highlighting for file types', async () => {
+  it('uses correct language highlighting for file types (Legacy Mode)', async () => {
     writeFileSync(join(TEST_DIR, 'src', 'style.css'), 'body { color: red; }');
 
     const reportWithCss: ImpactReport = {
@@ -257,7 +258,7 @@ export function login() { return API_KEY; }
 
     const generator = new PromptPackGenerator({
       projectPath: TEST_DIR,
-      provider: 'claude',
+      provider: 'generic', // Use generic to trigger legacy mode
       budget: 10000,
     });
 
