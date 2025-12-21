@@ -14,5 +14,5 @@ AI-assisted development context generator. Analyzes code changes, maps their imp
 - **Token Estimation:** Provider-neutral estimation for OpenAI (tiktoken) and Claude.
 - **Secret Redaction:** Pattern-based detection to ensure sensitive information is never sent to AI providers.
 - **Budget Allocation:** Smart category-based token budgets to fit context into model limits.
+- **Prompt Generation:** Optimized templates for Claude XML and OpenAI message formats.
 - **Automated Scanning (Planned):** TypeScript and Python AST scanners for automatic dependency discovery.
-- **Prompt Generation (Planned):** Optimized templates for Claude XML and OpenAI message formats.
