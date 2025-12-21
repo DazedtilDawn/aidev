@@ -14,8 +14,8 @@
 - [x] Task: Conductor - User Manual Verification 'Provider Formatters' (Protocol in workflow.md) [137296a]
 
 ## Phase 3: CLI Integration & Wiring
-- [ ] Task: Update `src/commands/prompt.ts` to wire up the `PromptGenerator` with the `ImpactAnalyzer` and `SecretRedactor`.
-- [ ] Task: Implement the CLI flags: `--provider`, `--budget`, `--format`, and output handling.
+- [x] Task: Update `src/commands/prompt.ts` to wire up the `PromptGenerator` with the `ImpactAnalyzer` and `SecretRedactor`. [5c60284]
+- [x] Task: Implement the CLI flags: `--provider`, `--budget`, `--format`, and output handling. [5c60284]
 - [ ] Task: Add integration tests ensuring `aidev prompt` produces valid output for a sample codebase.
 - [ ] Task: Conductor - User Manual Verification 'CLI Integration & Wiring' (Protocol in workflow.md)
 
