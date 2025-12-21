@@ -1,0 +1,28 @@
+# Track Plan: Smart Prompt Templates & Presets
+
+## Phase 1: Preset Architecture (plumbing)
+- [x] Task: Define the template schema (frontmatter + body) and `Preset` interface in `src/prompt/presets/types.ts`. [2a8d3f5]
+- [ ] Task: Create `PresetResolver` in `src/prompt/presets/resolver.ts` to handle built-ins and local loading.
+- [ ] Task: Implement variable interpolation logic (handle missing vars with actionable errors).
+- [ ] Task: Update `PromptPackGenerator` to accept a resolved `Preset` and inject its content into the bundle.
+- [ ] Task: Conductor - User Manual Verification 'Preset Architecture' (Protocol in workflow.md)
+
+## Phase 2: Template Library (intelligence)
+- [ ] Task: Author the `bugfix` template with robust system instructions and workflow steps.
+- [ ] Task: Author the `feature` template focusing on implementation planning and completeness.
+- [ ] Task: Author the `refactor` template focusing on safety and non-functional improvements.
+- [ ] Task: Author the `test` template focusing on coverage and edge cases.
+- [ ] Task: Conductor - User Manual Verification 'Template Library' (Protocol in workflow.md)
+
+## Phase 3: Active Context Summarization
+- [ ] Task: Update `ImpactAnalyzer` to generate a "relationship summary" string for each impacted file (e.g., "Imports changed file X").
+- [ ] Task: Update `ContextBundle` to include these summaries.
+- [ ] Task: Update `ClaudeFormatter` and `OpenAIFormatter` to display the "Context Rationale" in the generated prompt.
+- [ ] Task: Conductor - User Manual Verification 'Active Context Summarization' (Protocol in workflow.md)
+
+## Phase 4: QA + Docs + Release
+- [ ] Task: Add integration tests for `aidev prompt --preset <name>`.
+- [ ] Task: Update `aidev prompt` CLI command to support `--preset`, `--list-presets`, etc.
+- [ ] Task: Add documentation for creating custom presets.
+- [ ] Task: Final verification: generate prompts for AIDEV itself using the new presets.
+- [ ] Task: Conductor - User Manual Verification 'QA + Docs + Release' (Protocol in workflow.md)
