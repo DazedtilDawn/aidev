@@ -7,6 +7,8 @@ import { createEstimator, TokenEstimator } from '../tokens/index.js';
 import { BudgetAllocator, ContextItem, ContextCategory, AllocationResult } from './allocator.js';
 import { normalizePath } from '../utils/index.js';
 import { PromptFormatter, ContextBundle } from './types.js';
+import { ClaudeFormatter } from './formatters/claude.js';
+import { OpenAIFormatter } from './formatters/openai.js';
 
 export interface GeneratorOptions {
   projectPath: string;
@@ -70,10 +72,22 @@ export class PromptPackGenerator {
   }
 
   async generate(report: ImpactReport): Promise<PromptPack> {
-    if (this.options.formatter) {
-      return this.generateWithFormatter(report, this.options.formatter);
+    const formatter = this.options.formatter || this.getFormatter(this.options.provider);
+    if (formatter) {
+      return this.generateWithFormatter(report, formatter);
     }
     return this.generateLegacy(report);
+  }
+
+  private getFormatter(provider: string): PromptFormatter | undefined {
+    switch (provider.toLowerCase()) {
+      case 'claude':
+        return new ClaudeFormatter();
+      case 'openai':
+        return new OpenAIFormatter();
+      default:
+        return undefined;
+    }
   }
 
   private async generateWithFormatter(report: ImpactReport, formatter: PromptFormatter): Promise<PromptPack> {

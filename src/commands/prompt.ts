@@ -1,12 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { writeFileSync } from 'fs';
-import { join } from 'path';
 import { loadProjectModel } from '../model/index.js';
 import { GitService } from '../git/index.js';
 import { ImpactAnalyzer } from '../impact/index.js';
 import { PromptPackGenerator } from '../prompt/index.js';
-import { createAdapter } from '../providers/index.js';
 import { exitCodeFor, formatError } from '../errors/index.js';
 
 interface PromptOptions {
@@ -81,21 +79,21 @@ export const promptCommand = new Command('prompt')
 
       const pack = await generator.generate(report);
 
-      // Format for provider
-      const adapter = createAdapter(options.provider);
-      const formatted = adapter.format(pack);
-
       // Output
       if (options.json) {
         console.log(JSON.stringify(pack.manifest, null, 2));
         return;
       }
 
+      const content = typeof pack.content === 'string' ? pack.content : JSON.stringify(pack.content, null, 2);
+      const extension = options.provider === 'claude' ? '.xml' : '.json';
+      const mimeType = options.provider === 'claude' ? 'text/xml' : 'application/json';
+
       if (options.output) {
-        const outputPath = options.output.endsWith(formatted.extension)
+        const outputPath = options.output.endsWith(extension)
           ? options.output
-          : options.output + formatted.extension;
-        writeFileSync(outputPath, formatted.content);
+          : options.output + extension;
+        writeFileSync(outputPath, content);
         console.log(chalk.green(`✓ Prompt pack written to ${outputPath}`));
       }
 
@@ -104,12 +102,12 @@ export const promptCommand = new Command('prompt')
       }
 
       // Print summary
-      printSummary(pack, formatted.mimeType);
+      printSummary(pack, mimeType);
 
       // If no output specified, print the content
       if (!options.output && !options.copy) {
         console.log(chalk.dim('\n--- Content ---\n'));
-        console.log(formatted.content);
+        console.log(content);
       }
 
     } catch (error) {
@@ -122,7 +120,7 @@ export const promptCommand = new Command('prompt')
   });
 
 function printSummary(
-  pack: Awaited<ReturnType<PromptPackGenerator['generate']>>,
+  pack: any,
   mimeType: string
 ): void {
   const m = pack.manifest;
