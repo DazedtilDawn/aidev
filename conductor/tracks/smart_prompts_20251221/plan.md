@@ -4,7 +4,7 @@
 - [x] Task: Define the template schema (frontmatter + body) and `Preset` interface in `src/prompt/presets/types.ts`. [2a8d3f5]
 - [x] Task: Create `PresetResolver` in `src/prompt/presets/resolver.ts` to handle built-ins and local loading. [5813074]
 - [x] Task: Implement variable interpolation logic (handle missing vars with actionable errors). [d960728]
-- [ ] Task: Update `PromptPackGenerator` to accept a resolved `Preset` and inject its content into the bundle.
+- [x] Task: Update `PromptPackGenerator` to accept a resolved `Preset` and inject its content into the bundle. [121acbc]
 - [ ] Task: Conductor - User Manual Verification 'Preset Architecture' (Protocol in workflow.md)
 
 ## Phase 2: Template Library (intelligence)
