@@ -336,11 +336,7 @@ export class PromptPackGenerator {
   private formatFileContent(path: string, content: string, context: string): string {
     const ext = path.split('.').pop() || '';
     const lang = this.getLanguageFromExtension(ext);
-    return `## File: ${path}\n**Context:** ${context}\n\n\
-\
-```${lang}\n${content}\n\
-\
-``` `;
+    return `## File: ${path}\n**Context:** ${context}\n\n\`\`\`${lang}\n${content}\n\`\`\``;
   }
 
   /**

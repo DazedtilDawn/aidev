@@ -10,6 +10,7 @@ import { exitCodeFor, formatError } from '../errors/index.js';
 interface PromptOptions {
   provider: string;
   budget: string;
+  format?: string;
   diff?: string;
   staged?: boolean;
   task?: string;
@@ -24,6 +25,7 @@ export const promptCommand = new Command('prompt')
   .description('Generate prompt pack for AI assistants')
   .option('--provider <name>', 'Target provider (claude, openai)', 'claude')
   .option('--budget <tokens>', 'Token budget', '100000')
+  .option('--format <type>', 'Output format (xml, json, text)')
   .option('--diff <ref>', 'Git diff reference (e.g., HEAD~1)')
   .option('--staged', 'Use staged changes')
   .option('--task <description>', 'Task description to include')
@@ -85,9 +87,13 @@ export const promptCommand = new Command('prompt')
         return;
       }
 
+      const defaultExtension = options.provider === 'claude' ? '.xml' : '.json';
+      const defaultMimeType = options.provider === 'claude' ? 'text/xml' : 'application/json';
+
+      const extension = options.format === 'json' ? '.json' : (options.format === 'xml' ? '.xml' : defaultExtension);
+      const mimeType = options.format === 'json' ? 'application/json' : (options.format === 'xml' ? 'text/xml' : defaultMimeType);
+
       const content = typeof pack.content === 'string' ? pack.content : JSON.stringify(pack.content, null, 2);
-      const extension = options.provider === 'claude' ? '.xml' : '.json';
-      const mimeType = options.provider === 'claude' ? 'text/xml' : 'application/json';
 
       if (options.output) {
         const outputPath = options.output.endsWith(extension)

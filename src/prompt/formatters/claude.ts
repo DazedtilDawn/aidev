@@ -23,6 +23,12 @@ export class ClaudeFormatter implements PromptFormatter {
     }
     parts.push('  </files>');
 
+    parts.push('  <context_map>');
+    for (const edge of bundle.impactReport.fileImpactEdges) {
+      parts.push(`    <edge source="${edge.source}" target="${edge.target}" type="${edge.type}" confidence="${edge.confidence.toFixed(2)}" />`);
+    }
+    parts.push('  </context_map>');
+
     parts.push('  <impact_summary>');
     parts.push(`    <affected_components>${bundle.impactReport.affectedComponents.join(', ')}</affected_components>`);
     parts.push(`    <affected_files_count>${bundle.impactReport.summary.filesAffected}</affected_files_count>`);
