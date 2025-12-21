@@ -1,4 +1,5 @@
 import { ImpactReport } from '../impact/analyzer.js';
+import { Preset } from './presets/types.js';
 
 /**
  * Represents a single file included in the context bundle.
@@ -79,6 +80,12 @@ export interface ContextBundle {
    * Uses provider-specific estimation (cl100k for OpenAI, claude for Anthropic).
    */
   tokenEstimate?: number;
+
+  /**
+   * The resolved preset used for generation, if any.
+   * Contains the template content and configuration.
+   */
+  preset?: Preset;
 }
 
 /**

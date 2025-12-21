@@ -4,6 +4,8 @@ import { join } from 'path';
 import { PromptPackGenerator } from '../src/prompt/generator.js';
 import { ImpactReport } from '../src/impact/index.js';
 
+import { Preset } from '../src/prompt/presets/types.js';
+
 const TEST_DIR = 'C:\\dev\\AIDEV\\tests\\fixtures\\generator-test';
 
 describe('PromptPackGenerator', () => {
@@ -285,5 +287,29 @@ export function login() { return API_KEY; }
     
     expect(output).toContain('src/auth/login.ts');
     expect(output).toContain('src/utils/crypto.ts');
+  });
+
+  it('injects preset content into the bundle', async () => {
+    const preset: Preset = {
+      config: { id: 'test', title: 'Test' },
+      content: 'System: {{task}}',
+    };
+
+    const mockFormatter = {
+      providerName: 'mock',
+      format: (bundle: any) => bundle.preset.content
+    };
+
+    const generator = new PromptPackGenerator({
+      projectPath: TEST_DIR,
+      provider: 'generic',
+      budget: 10000,
+      taskDescription: 'Do something',
+      formatter: mockFormatter,
+      preset: preset
+    });
+
+    const pack = await generator.generate(mockReport);
+    expect(pack.content).toBe('System: Do something');
   });
 });

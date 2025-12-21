@@ -9,6 +9,8 @@ import { normalizePath } from '../utils/index.js';
 import { PromptFormatter, ContextBundle } from './types.js';
 import { ClaudeFormatter } from './formatters/claude.js';
 import { OpenAIFormatter } from './formatters/openai.js';
+import { Preset } from './presets/types.js';
+import { interpolate } from './presets/interpolator.js';
 
 /**
  * Configuration options for the PromptPackGenerator.
@@ -48,6 +50,11 @@ export interface GeneratorOptions {
    * Optional custom formatter for provider-specific output.
    */
   formatter?: PromptFormatter;
+
+  /**
+   * Optional preset to structure the prompt.
+   */
+  preset?: Preset;
 }
 
 /**
@@ -127,6 +134,11 @@ export class PromptPackGenerator {
    */
   async generate(report: ImpactReport): Promise<PromptPack> {
     const formatter = this.options.formatter || this.getFormatter(this.options.provider);
+    
+    if (this.options.preset) {
+      return this.generateWithPreset(report, this.options.preset, formatter);
+    }
+
     if (formatter) {
       return this.generateWithFormatter(report, formatter);
     }
@@ -145,6 +157,96 @@ export class PromptPackGenerator {
       default:
         return undefined;
     }
+  }
+
+  private async generateWithPreset(report: ImpactReport, preset: Preset, formatter?: PromptFormatter): Promise<PromptPack> {
+    // 1. Collect raw context items
+    const items = await this.collectContextItems(report, true);
+
+    // 2. Allocate within budget
+    const allocation = this.allocator.allocate(items);
+
+    // 3. Build ContextBundle
+    const bundle: ContextBundle = {
+      timestamp: new Date().toISOString(),
+      impactReport: report,
+      files: allocation.allocated
+        .filter(i => i.path)
+        .map(i => ({
+          path: i.path!,
+          content: i.content,
+          isRedacted: i.content.includes('[REDACTED:')
+        })),
+      instructions: this.options.taskDescription,
+      tokenEstimate: allocation.totalTokens,
+      preset: preset,
+    };
+
+    // 4. Interpolate Preset Content
+    // We interpolate variables into the preset content.
+    // Available variables:
+    // - {{task}}: The task description
+    // - {{context_files}}: The list of files (if we want to embed them directly in the template, though formatters usually handle this)
+    // - {{context_summary}}: Summary of impact
+    
+    // Actually, the Preset is a "System Instruction" or "Guidance" layer.
+    // The *Formatter* is still responsible for the final wire format (XML/JSON).
+    // The Preset content is *part* of the prompt.
+    
+    // If a formatter is present, we let it handle the bundle, which now includes the preset.
+    // The formatter should check for bundle.preset and use it.
+    
+    // BUT, if the preset *defines* the structure (e.g. "output.format"), we might need to respect that?
+    // The spec says: "The prompt pack includes a “Why included” relationship summary... Presets are extensible..."
+    // "Each preset injects: role/system guidance, structured workflow, explicit output requirements"
+    
+    // So the Preset content *is* the System Prompt (or part of it).
+    
+    // Let's interpolate variables into the preset content first.
+    const variables: Record<string, string> = {
+      task: this.options.taskDescription || '',
+      // Add more variables as needed
+    };
+    
+    // We might need to catch missing variables here or in the interpolator.
+    // For now, let's assume the interpolator throws and we might want to catch/warn or let it fail.
+    // The interpolator throws, which is good.
+    
+    // We update the preset in the bundle with the interpolated content.
+    const interpolatedPreset = {
+      ...preset,
+      content: interpolate(preset.content, variables)
+    };
+    
+    const bundleWithInterpolatedPreset = {
+      ...bundle,
+      preset: interpolatedPreset
+    };
+
+    let content: string | object;
+    
+    if (formatter) {
+      // If we have a formatter, use it. The formatter needs to know how to use the preset.
+      // We will update formatters in Phase 3/4 to use this.
+      // For now, we pass the bundle with the preset.
+      content = formatter.format(bundleWithInterpolatedPreset, { timestamp: 'STABLE_TIMESTAMP' });
+    } else {
+      // Fallback if no formatter (e.g. text/markdown output based on preset?)
+      // For now, let's just return the preset content joined with the files if no formatter.
+      // But we usually have a default formatter (Claude/OpenAI).
+      // If generic provider, maybe we just return text?
+      content = interpolatedPreset.content + '\n\n' + items.map(i => i.content).join('\n\n');
+    }
+
+    const contentString = typeof content === 'string' ? content : JSON.stringify(content);
+    const manifest = this.buildManifest(report, allocation, contentString, []);
+
+    return {
+      manifest,
+      content,
+      sections: [],
+      allocation,
+    };
   }
 
   /**
