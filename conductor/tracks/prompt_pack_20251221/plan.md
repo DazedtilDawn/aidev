@@ -13,11 +13,11 @@
 - [x] Task: Write unit tests for `OpenAIFormatter` to ensure correct JSON structure and content placement. [8db5d0c]
 - [x] Task: Conductor - User Manual Verification 'Provider Formatters' (Protocol in workflow.md) [137296a]
 
-## Phase 3: CLI Integration & Wiring
+## Phase 3: CLI Integration & Wiring [checkpoint: 7b297a2]
 - [x] Task: Update `src/commands/prompt.ts` to wire up the `PromptGenerator` with the `ImpactAnalyzer` and `SecretRedactor`. [5c60284]
 - [x] Task: Implement the CLI flags: `--provider`, `--budget`, `--format`, and output handling. [5c60284]
-- [ ] Task: Add integration tests ensuring `aidev prompt` produces valid output for a sample codebase.
-- [ ] Task: Conductor - User Manual Verification 'CLI Integration & Wiring' (Protocol in workflow.md)
+- [x] Task: Add integration tests ensuring `aidev prompt` produces valid output for a sample codebase. [1af61de]
+- [x] Task: Conductor - User Manual Verification 'CLI Integration & Wiring' (Protocol in workflow.md) [7b297a2]
 
 ## Phase 4: Documentation & Polish
 - [ ] Task: Update `README.md` with usage examples for the new `prompt` command.
