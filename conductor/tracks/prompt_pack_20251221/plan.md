@@ -1,0 +1,26 @@
+# Track Plan: Prompt Pack Generator
+
+## Phase 1: Core Architecture & Interfaces
+- [ ] Task: Define the `PromptFormatter` interface and base types in `src/prompt/types.ts`.
+- [ ] Task: Create the `PromptGenerator` class in `src/prompt/generator.ts` (refactor existing if needed) to orchestrate the formatting process.
+- [ ] Task: Implement a mock/test formatter to verify the pipeline.
+- [ ] Task: Conductor - User Manual Verification 'Core Architecture & Interfaces' (Protocol in workflow.md)
+
+## Phase 2: Provider Formatters
+- [ ] Task: Implement `ClaudeFormatter` in `src/prompt/formatters/claude.ts` (XML structure).
+- [ ] Task: Write unit tests for `ClaudeFormatter` to ensure correct XML tagging and escaping.
+- [ ] Task: Implement `OpenAIFormatter` in `src/prompt/formatters/openai.ts` (JSON/Message structure).
+- [ ] Task: Write unit tests for `OpenAIFormatter` to ensure correct JSON structure and content placement.
+- [ ] Task: Conductor - User Manual Verification 'Provider Formatters' (Protocol in workflow.md)
+
+## Phase 3: CLI Integration & Wiring
+- [ ] Task: Update `src/commands/prompt.ts` to wire up the `PromptGenerator` with the `ImpactAnalyzer` and `SecretRedactor`.
+- [ ] Task: Implement the CLI flags: `--provider`, `--budget`, `--format`, and output handling.
+- [ ] Task: Add integration tests ensuring `aidev prompt` produces valid output for a sample codebase.
+- [ ] Task: Conductor - User Manual Verification 'CLI Integration & Wiring' (Protocol in workflow.md)
+
+## Phase 4: Documentation & Polish
+- [ ] Task: Update `README.md` with usage examples for the new `prompt` command.
+- [ ] Task: Add JSDoc comments to public interfaces in the `prompt` module.
+- [ ] Task: Final verification run: generate prompt packs for the AIDEV codebase itself and verify content.
+- [ ] Task: Conductor - User Manual Verification 'Documentation & Polish' (Protocol in workflow.md)
