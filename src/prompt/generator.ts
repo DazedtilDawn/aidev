@@ -10,16 +10,49 @@ import { PromptFormatter, ContextBundle } from './types.js';
 import { ClaudeFormatter } from './formatters/claude.js';
 import { OpenAIFormatter } from './formatters/openai.js';
 
+/**
+ * Configuration options for the PromptPackGenerator.
+ */
 export interface GeneratorOptions {
+  /**
+   * Absolute path to the project root.
+   */
   projectPath: string;
+  
+  /**
+   * Target LLM provider for token estimation and default formatting.
+   */
   provider: 'claude' | 'openai' | 'generic';
+  
+  /**
+   * Maximum allowed tokens for the entire context pack.
+   */
   budget: number;
+  
+  /**
+   * Optional description of the task being performed.
+   */
   taskDescription?: string;
+  
+  /**
+   * Whether to include architecture documentation in the pack.
+   */
   includeArchitecture?: boolean;
+  
+  /**
+   * Whether to include component contracts in the pack.
+   */
   includeContracts?: boolean;
+  
+  /**
+   * Optional custom formatter for provider-specific output.
+   */
   formatter?: PromptFormatter;
 }
 
+/**
+ * Metadata about the generated prompt pack.
+ */
 export interface PromptPackManifest {
   version: string;
   provider: string;
@@ -43,6 +76,9 @@ export interface PromptPackManifest {
   };
 }
 
+/**
+ * The final output of the prompt pack generation process.
+ */
 export interface PromptPack {
   manifest: PromptPackManifest;
   content: string | object;
@@ -50,6 +86,9 @@ export interface PromptPack {
   allocation: AllocationResult;
 }
 
+/**
+ * A grouped section of content in a legacy prompt pack.
+ */
 export interface PromptSection {
   category: ContextCategory;
   title: string;
@@ -58,6 +97,15 @@ export interface PromptSection {
   files: string[];
 }
 
+/**
+ * Orchestrates the collection, allocation, and formatting of code context for AI prompts.
+ * 
+ * The generator:
+ * 1. Collects relevant files and documentation based on an ImpactReport.
+ * 2. Redacts secrets from the content.
+ * 3. Allocates space for each item within a token budget.
+ * 4. Delegates formatting to a PromptFormatter for the final output.
+ */
 export class PromptPackGenerator {
   private redactor: SecretRedactor;
   private estimator: TokenEstimator;
@@ -71,6 +119,12 @@ export class PromptPackGenerator {
     this.allocator = new BudgetAllocator(options.budget);
   }
 
+  /**
+   * Generates a complete PromptPack from an ImpactReport.
+   * 
+   * @param report - The impact analysis results.
+   * @returns A promise that resolves to the generated PromptPack.
+   */
   async generate(report: ImpactReport): Promise<PromptPack> {
     const formatter = this.options.formatter || this.getFormatter(this.options.provider);
     if (formatter) {
@@ -79,6 +133,9 @@ export class PromptPackGenerator {
     return this.generateLegacy(report);
   }
 
+  /**
+   * Internal helper to select a formatter based on the provider name.
+   */
   private getFormatter(provider: string): PromptFormatter | undefined {
     switch (provider.toLowerCase()) {
       case 'claude':
@@ -90,6 +147,9 @@ export class PromptPackGenerator {
     }
   }
 
+  /**
+   * Generation flow using the new PromptFormatter architecture.
+   */
   private async generateWithFormatter(report: ImpactReport, formatter: PromptFormatter): Promise<PromptPack> {
     // 1. Collect raw context items (no markdown formatting)
     const items = await this.collectContextItems(report, true);
@@ -116,14 +176,7 @@ export class PromptPackGenerator {
     const content = formatter.format(bundle);
 
     // 5. Generate manifest (contentHash depends on formatted output string)
-    // For object output, we JSON stringify for hashing
     const contentString = typeof content === 'string' ? content : JSON.stringify(content);
-    
-    // We don't have "sections" in the same way for the formatted output, 
-    // but we can map the allocated items to dummy sections if needed or leave empty.
-    // Existing tests expect sections for legacy, but for new flow maybe not strictly required unless we want to keep parity.
-    // We will leave sections empty for now as it's a legacy concept.
-    
     const manifest = this.buildManifest(report, allocation, contentString, []);
 
     return {
@@ -134,6 +187,9 @@ export class PromptPackGenerator {
     };
   }
 
+  /**
+   * Generation flow using legacy markdown formatting.
+   */
   private async generateLegacy(report: ImpactReport): Promise<PromptPack> {
     // 1. Collect context items with markdown formatting
     const items = await this.collectContextItems(report, false);
@@ -158,6 +214,9 @@ export class PromptPackGenerator {
     };
   }
 
+  /**
+   * Collects and prepares context items from various sources.
+   */
   private async collectContextItems(report: ImpactReport, raw: boolean): Promise<ContextItem[]> {
     const items: ContextItem[] = [];
 
@@ -251,10 +310,12 @@ export class PromptPackGenerator {
     return items;
   }
 
+  /**
+   * Reads a file and applies secret redaction.
+   */
   private readAndRedact(filePath: string): string | null {
     const fullPath = join(this.options.projectPath, filePath);
     if (!existsSync(fullPath)) {
-      // File doesn't exist - this is expected for deleted files
       return null;
     }
 
@@ -263,19 +324,28 @@ export class PromptPackGenerator {
       const { content: redacted } = this.redactor.redact(content);
       return redacted;
     } catch (error) {
-      // Log warning for files that exist but can't be read (permissions, encoding, etc.)
       const message = error instanceof Error ? error.message : String(error);
       console.warn(`Warning: Excluding file "${filePath}" due to read error: ${message}`);
       return null;
     }
   }
 
+  /**
+   * Formats a file's content for legacy markdown output.
+   */
   private formatFileContent(path: string, content: string, context: string): string {
     const ext = path.split('.').pop() || '';
     const lang = this.getLanguageFromExtension(ext);
-    return `## File: ${path}\n**Context:** ${context}\n\n\`\`\`${lang}\n${content}\n\`\`\``;
+    return `## File: ${path}\n**Context:** ${context}\n\n\
+\
+```${lang}\n${content}\n\
+\
+``` `;
   }
 
+  /**
+   * Maps file extensions to markdown language identifiers.
+   */
   private getLanguageFromExtension(ext: string): string {
     const map: Record<string, string> = {
       ts: 'typescript',
@@ -301,6 +371,9 @@ export class PromptPackGenerator {
     return map[ext] || ext;
   }
 
+  /**
+   * Loads architecture documentation from standard locations.
+   */
   private async loadArchitectureDocs(): Promise<string | null> {
     const paths = [
       join(this.options.projectPath, '.aidev', 'docs', 'architecture.md'),
@@ -320,6 +393,9 @@ export class PromptPackGenerator {
     return null;
   }
 
+  /**
+   * Loads contracts for a specific component.
+   */
   private async loadComponentContracts(componentName: string): Promise<string | null> {
     const contractPath = join(
       this.options.projectPath,
@@ -340,18 +416,19 @@ export class PromptPackGenerator {
     }
   }
 
+  /**
+   * Groups allocated items into sections for legacy output.
+   */
   private buildSections(allocation: AllocationResult): PromptSection[] {
     const sections: PromptSection[] = [];
     const byCategory = new Map<ContextCategory, ContextItem[]>();
 
-    // Group allocated items by category
     for (const item of allocation.allocated) {
       const list = byCategory.get(item.category) || [];
       list.push(item);
       byCategory.set(item.category, list);
     }
 
-    // Build sections in priority order
     const categoryOrder: ContextCategory[] = [
       'task',
       'changed',
@@ -390,11 +467,13 @@ export class PromptPackGenerator {
     return sections;
   }
 
+  /**
+   * Combines sections into a single markdown string for legacy output.
+   */
   private buildContent(sections: PromptSection[], forHash: boolean = false): string {
     const parts: string[] = [];
 
     parts.push('# AI Development Context Pack\n');
-    // Only include timestamp in display content, not for hashing
     if (!forHash) {
       parts.push(`Generated: ${new Date().toISOString()}\n`);
     }
@@ -411,16 +490,15 @@ export class PromptPackGenerator {
     return parts.join('');
   }
 
+  /**
+   * Constructs the final manifest including metadata and content hash.
+   */
   private buildManifest(
     report: ImpactReport,
     allocation: AllocationResult,
     content: string,
     sections: PromptSection[]
   ): PromptPackManifest {
-    // Hash content without timestamp for determinism
-    // If we're in new mode, content is the full string (or json string), which is already deterministic hopefully.
-    // For legacy, we rebuild content via buildContent(..., true).
-    
     let hashableContent = content;
     if (sections.length > 0 && !this.options.formatter) {
         hashableContent = this.buildContent(sections, true);
