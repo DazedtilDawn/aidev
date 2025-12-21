@@ -19,8 +19,8 @@
 - [x] Task: Add integration tests ensuring `aidev prompt` produces valid output for a sample codebase. [1af61de]
 - [x] Task: Conductor - User Manual Verification 'CLI Integration & Wiring' (Protocol in workflow.md) [7b297a2]
 
-## Phase 4: Documentation & Polish
+## Phase 4: Documentation & Polish [checkpoint: 859b58f]
 - [x] Task: Update `README.md` with usage examples for the new `prompt` command. [02b4f39]
 - [x] Task: Add JSDoc comments to public interfaces in the `prompt` module. [6408bc8]
 - [x] Task: Final verification run: generate prompt packs for the AIDEV codebase itself and verify content. [a7c4186]
-- [ ] Task: Conductor - User Manual Verification 'Documentation & Polish' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Documentation & Polish' (Protocol in workflow.md) [859b58f]
