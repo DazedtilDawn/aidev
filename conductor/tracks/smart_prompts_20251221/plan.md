@@ -3,7 +3,7 @@
 ## Phase 1: Preset Architecture (plumbing)
 - [x] Task: Define the template schema (frontmatter + body) and `Preset` interface in `src/prompt/presets/types.ts`. [2a8d3f5]
 - [x] Task: Create `PresetResolver` in `src/prompt/presets/resolver.ts` to handle built-ins and local loading. [5813074]
-- [ ] Task: Implement variable interpolation logic (handle missing vars with actionable errors).
+- [x] Task: Implement variable interpolation logic (handle missing vars with actionable errors). [d960728]
 - [ ] Task: Update `PromptPackGenerator` to accept a resolved `Preset` and inject its content into the bundle.
 - [ ] Task: Conductor - User Manual Verification 'Preset Architecture' (Protocol in workflow.md)
 
