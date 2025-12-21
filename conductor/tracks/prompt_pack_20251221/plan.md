@@ -21,6 +21,6 @@
 
 ## Phase 4: Documentation & Polish
 - [x] Task: Update `README.md` with usage examples for the new `prompt` command. [02b4f39]
-- [ ] Task: Add JSDoc comments to public interfaces in the `prompt` module.
+- [x] Task: Add JSDoc comments to public interfaces in the `prompt` module. [6408bc8]
 - [ ] Task: Final verification run: generate prompt packs for the AIDEV codebase itself and verify content.
 - [ ] Task: Conductor - User Manual Verification 'Documentation & Polish' (Protocol in workflow.md)
