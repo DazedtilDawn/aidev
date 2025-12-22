@@ -91,10 +91,30 @@ Generate context packs for AI assistants.
 
 ```bash
 aidev prompt --staged --task "Review my changes"
+aidev prompt --preset bugfix --staged  # Use smart bugfix template
+aidev prompt --list-presets            # See available presets
 aidev prompt --provider claude --budget 150000 --arch   # Include architecture docs
 aidev prompt --provider openai --budget 50000 --output prompt.json
 aidev prompt --staged --copy  # Copy to clipboard
 ```
+
+#### Custom Presets
+
+Create a markdown file with YAML frontmatter in your project or any path:
+
+```md
+---
+id: review
+title: Senior Code Reviewer
+---
+# System Instructions
+You are a Senior Code Reviewer. Review the following changes for logic errors.
+
+# Task
+{{task}}
+```
+
+Use it with: `aidev prompt --preset ./my-preset.md`
 
 ### `aidev sync`
 Discover file dependencies in your codebase.

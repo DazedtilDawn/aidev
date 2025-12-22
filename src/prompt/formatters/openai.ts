@@ -27,8 +27,9 @@ export class OpenAIFormatter implements PromptFormatter {
   private buildUserMessage(bundle: ContextBundle): string {
     const parts: string[] = [];
 
-    if (bundle.instructions) {
-      parts.push(`## Task Instructions\n${bundle.instructions}\n`);
+    const instructions = bundle.preset?.content || bundle.instructions;
+    if (instructions) {
+      parts.push(`## Task Instructions\n${instructions}\n`);
     }
 
     parts.push('## Code Context\n');

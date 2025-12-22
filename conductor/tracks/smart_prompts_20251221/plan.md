@@ -21,8 +21,8 @@
 - [x] Task: Conductor - User Manual Verification 'Active Context Summarization' (Protocol in workflow.md) [9dbf26e]
 
 ## Phase 4: QA + Docs + Release
-- [ ] Task: Add integration tests for `aidev prompt --preset <name>`.
-- [ ] Task: Update `aidev prompt` CLI command to support `--preset`, `--list-presets`, etc.
+- [~] Task: Add integration tests for `aidev prompt --preset <name>`.
+- [~] Task: Update `aidev prompt` CLI command to support `--preset`, `--list-presets`, etc.
 - [ ] Task: Add documentation for creating custom presets.
 - [ ] Task: Final verification: generate prompts for AIDEV itself using the new presets.
 - [ ] Task: Conductor - User Manual Verification 'QA + Docs + Release' (Protocol in workflow.md)

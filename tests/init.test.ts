@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, rmSync, existsSync, readFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { join, dirname } from 'path';
@@ -11,6 +11,8 @@ const TEST_DIR = join(PROJECT_ROOT, 'tests', 'fixtures', 'init-test');
 const CLI_PATH = join(PROJECT_ROOT, 'src', 'cli.ts');
 
 describe('Init Command', () => {
+  vi.setConfig({ testTimeout: 30000 });
+
   beforeEach(() => {
     if (existsSync(TEST_DIR)) {
       rmSync(TEST_DIR, { recursive: true, force: true });

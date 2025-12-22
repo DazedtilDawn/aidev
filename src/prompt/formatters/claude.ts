@@ -11,9 +11,10 @@ export class ClaudeFormatter implements PromptFormatter {
     parts.push('<context>');
     parts.push(`  <generated_at>${timestamp}</generated_at>`);
 
-    if (bundle.instructions) {
+    const instructions = bundle.preset?.content || bundle.instructions;
+    if (instructions) {
       parts.push('  <instructions>');
-      parts.push(`    ${this.escapeXml(bundle.instructions)}`);
+      parts.push(`    ${this.escapeXml(instructions)}`);
       parts.push('  </instructions>');
     }
 

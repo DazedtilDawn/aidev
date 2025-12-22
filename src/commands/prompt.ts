@@ -5,12 +5,15 @@ import { loadProjectModel } from '../model/index.js';
 import { GitService } from '../git/index.js';
 import { ImpactAnalyzer } from '../impact/index.js';
 import { PromptPackGenerator } from '../prompt/index.js';
+import { PresetResolver } from '../prompt/presets/resolver.js';
 import { exitCodeFor, formatError } from '../errors/index.js';
 
 interface PromptOptions {
   provider: string;
   budget: string;
   format?: string;
+  preset?: string;
+  listPresets?: boolean;
   diff?: string;
   staged?: boolean;
   task?: string;
@@ -26,6 +29,8 @@ export const promptCommand = new Command('prompt')
   .option('--provider <name>', 'Target provider (claude, openai)', 'claude')
   .option('--budget <tokens>', 'Token budget', '100000')
   .option('--format <type>', 'Output format (xml, json, text)')
+  .option('--preset <name>', 'Select a built-in or local prompt template')
+  .option('--list-presets', 'List available prompt presets')
   .option('--diff <ref>', 'Git diff reference (e.g., HEAD~1)')
   .option('--staged', 'Use staged changes')
   .option('--task <description>', 'Task description to include')
@@ -37,6 +42,18 @@ export const promptCommand = new Command('prompt')
   .action(async (options: PromptOptions) => {
     try {
       const projectPath = process.cwd();
+
+      // 1. Handle --list-presets
+      if (options.listPresets) {
+        console.log(chalk.bold('\n📋 Available Prompt Presets\n'));
+        console.log('Built-in:');
+        console.log('  - bugfix: Optimized for finding and fixing bugs');
+        console.log('  - feature: Optimized for implementing new features');
+        console.log('  - refactor: Optimized for improving existing code');
+        console.log('  - test: Optimized for writing unit and integration tests');
+        console.log('\nUse --preset <name> to apply one.');
+        return;
+      }
 
       // Load project model
       const model = await loadProjectModel(projectPath);
@@ -65,6 +82,17 @@ export const promptCommand = new Command('prompt')
         return;
       }
 
+      // Resolve preset if requested
+      let preset;
+      if (options.preset) {
+        const resolver = new PresetResolver();
+        preset = await resolver.resolve(options.preset);
+        if (!preset) {
+          console.error(chalk.red(`Error: Could not resolve preset "${options.preset}"`));
+          process.exit(1);
+        }
+      }
+
       // Analyze impact
       const analyzer = new ImpactAnalyzer(model);
       const report = analyzer.analyze(changedFiles);
@@ -77,6 +105,7 @@ export const promptCommand = new Command('prompt')
         taskDescription: options.task,
         includeArchitecture: options.arch,
         includeContracts: options.contracts,
+        preset: preset,
       });
 
       const pack = await generator.generate(report);
