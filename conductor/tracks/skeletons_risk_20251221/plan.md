@@ -1,9 +1,9 @@
 # Track Plan: Advanced Dependency Skeletons & Risk Analysis
 
 ## Phase 1: Skeleton Extraction Logic
-- [ ] Task: Create `SkeletonExtractor` interface and TypeScript implementation (`src/scanners/skeletons/typescript.ts`).
-- [ ] Task: Implement regex or AST-based stripping of function bodies and class methods.
-- [ ] Task: Add unit tests verifying that valid TS signatures are preserved while logic is removed.
+- [x] Task: Create `SkeletonExtractor` interface and TypeScript implementation (`src/scanners/skeletons/typescript.ts`). e1a5f31
+- [x] Task: Implement regex or AST-based stripping of function bodies and class methods. e1a5f31
+- [x] Task: Add unit tests verifying that valid TS signatures are preserved while logic is removed. e1a5f31
 - [ ] Task: Conductor - User Manual Verification 'Skeleton Extraction Logic' (Protocol in workflow.md)
 
 ## Phase 2: Risk Analysis Engine
