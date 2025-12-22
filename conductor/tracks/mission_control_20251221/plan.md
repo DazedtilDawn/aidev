@@ -1,16 +1,14 @@
 # Track Plan: Mission Control (Visual Dashboard)
 
-## Phase 1: Headless Server (The Brain)
-- [ ] Task: Scaffold Express server in `src/server/index.ts`.
-- [ ] Task: Implement `GET /api/graph` to return project model, nodes, and risk metadata.
-- [ ] Task: Implement `POST /api/prompt` to generate formatted context packets based on UI selection.
-- [ ] Task: Conductor - User Manual Verification 'Headless Server' (Protocol in workflow.md)
+## Phase 1: Headless Server (The Brain) [checkpoint: ad25e64]
+- [x] Task: Scaffold Express server in `src/server/index.ts`. ac1a296
+- [x] Task: Implement `GET /api/graph` to return project model, nodes, and risk metadata. ac1a296
+- [x] Task: Implement `POST /api/prompt` to generate formatted context packets based on UI selection. ac1a296
+- [x] Task: Conductor - User Manual Verification 'Headless Server' (Protocol in workflow.md) ad25e64
 
 ## Phase 2: Visual Dashboard (The Face)
-- [ ] Task: Scaffold React + Vite application in `src/dashboard/`.
+- [~] Task: Scaffold React + Vite application in `src/dashboard/`.
 - [ ] Task: Implement Force-Directed Graph using `reactflow` to visualize dependencies and risk heatmaps.
-- [ ] Task: Build the "Context Mixer" UI: Sidebar for file selection with Full/Skeleton/Exclude toggles.
-- [ ] Task: Conductor - User Manual Verification 'Visual Dashboard' (Protocol in workflow.md)
 
 ## Phase 3: Ghost Mode (Real-time Automation)
 - [ ] Task: Integrate `chokidar` for file system watching.
