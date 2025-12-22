@@ -84,7 +84,7 @@ This is the system architecture document.
 
     expect(pack.content).toContain('src/auth/login.ts');
     expect(pack.content).toContain('login');
-    expect(pack.content).toContain('<file path="src/auth/login.ts">');
+    expect(pack.content).toContain('<file path="src/auth/login.ts" reason="Changed file">');
   });
 
   it('includes impacted files in output (Claude XML)', async () => {
@@ -98,7 +98,7 @@ This is the system architecture document.
 
     expect(pack.content).toContain('src/utils/crypto.ts');
     expect(pack.content).toContain('hash');
-    expect(pack.content).toContain('<file path="src/utils/crypto.ts">');
+    expect(pack.content).toContain('<file path="src/utils/crypto.ts" reason="Imported by src/auth/login.ts">');
   });
 
   it('includes task description when provided (Claude XML)', async () => {
