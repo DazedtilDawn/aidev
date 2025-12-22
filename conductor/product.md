@@ -15,4 +15,6 @@ AI-assisted development context generator. Analyzes code changes, maps their imp
 - **Secret Redaction:** Pattern-based detection to ensure sensitive information is never sent to AI providers.
 - **Budget Allocation:** Smart category-based token budgets to fit context into model limits.
 - **Prompt Generation:** Optimized templates for Claude XML and OpenAI message formats.
+- **Smart Guidance (Presets):** Task-tuned prompt templates (Bugfix, Feature, Test, Refactor) that guide LLMs with structured workflows and constraints.
+- **Context Rationale:** Automatically explains why each file is included in the context bundle.
 - **Automated Scanning (Planned):** TypeScript and Python AST scanners for automatic dependency discovery.

@@ -7,6 +7,7 @@
 ## Frameworks and Libraries
 - **CLI Framework:** [Commander.js](https://github.com/tj/commander.js/) - Handling command-line arguments and subcommands.
 - **Validation:** [Zod](https://zod.dev/) - Defining and validating schemas for components, config, and state.
+- **Frontmatter Parsing:** [gray-matter](https://github.com/jonschlinkert/gray-matter) - Parsing YAML frontmatter in prompt templates.
 - **Git Integration:** [simple-git](https://github.com/steveukx/node-simple-git) - Programmatic access to git diffs and status.
 - **YAML Parsing:** [js-yaml](https://github.com/nodeca/js-yaml) - Loading and saving project component definitions.
 - **Token Estimation:** [tiktoken](https://github.com/dqbd/tiktoken) - Accurate token counting for OpenAI models.
