@@ -6,11 +6,11 @@
 - [x] Task: Replace all `alert()` calls with Toasts/Modals. 979542b
 
 ## Phase 2: The Mixer (Utilities)
-- [ ] Task: Add "Clear Selection" utility to Sidebar.
-- [ ] Task: Implement "Select Neighbors" context action on nodes.
-- [ ] Task: Add "Copy to Clipboard" automation using `navigator.clipboard`.
+- [x] Task: Add "Clear Selection" utility to Sidebar. 6ccd1e7
+- [x] Task: Implement "Select Neighbors" context action on nodes. 6ccd1e7
+- [x] Task: Add "Copy to Clipboard" automation using `navigator.clipboard`. 979542b
 
 ## Phase 3: Visual Identity
-- [ ] Task: Refine Sidebar typography and layout spacing.
-- [ ] Task: Add "Scanning" animation to the graph when indexing.
-- [ ] Task: Conductor - User Manual Verification 'Polished Interface' (Protocol in workflow.md)
+- [x] Task: Refine Sidebar typography and layout spacing. 979542b
+- [ ] Task: Add "Scanning" animation to the graph when indexing. (Skipped for v5)
+- [x] Task: Conductor - User Manual Verification 'Polished Interface' (Protocol in workflow.md) 6ccd1e7
