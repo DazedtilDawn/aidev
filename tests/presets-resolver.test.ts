@@ -47,4 +47,22 @@ describe('PresetResolver', () => {
     expect(preset?.config.output?.include_tests).toBe('never');
     expect(preset?.content.trim()).toBe('Body content');
   });
+
+  it('loads a built-in preset', async () => {
+    // We assume 'bugfix' exists since we created it in the project
+    // But since this runs in the context of the project source, 
+    // and the resolver uses __dirname relative to src/prompt/presets/resolver.ts,
+    // it should find src/prompt/presets/templates/bugfix.md
+    
+    // However, vitest runs TS files. The source is in src/. 
+    // We need to make sure the templates are accessible.
+    // Let's create a mock template in the expected location for the test environment?
+    // Actually, since we committed the templates, they exist in the FS.
+    
+    const resolver = new PresetResolver();
+    const preset = await resolver.resolve('bugfix');
+    
+    expect(preset).toBeDefined();
+    expect(preset?.config.id).toBe('bugfix');
+  });
 });

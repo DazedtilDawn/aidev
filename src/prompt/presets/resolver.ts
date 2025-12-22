@@ -1,6 +1,11 @@
 import { readFileSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { Preset, PresetConfigSchema } from './types.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export class PresetResolver {
   /**
@@ -14,7 +19,11 @@ export class PresetResolver {
       return this.loadFromFile(nameOrPath);
     }
 
-    // 2. Check built-ins (TODO: Implement built-in loading later)
+    // 2. Check built-ins
+    const builtInPath = join(__dirname, 'templates', `${nameOrPath}.md`);
+    if (existsSync(builtInPath)) {
+      return this.loadFromFile(builtInPath);
+    }
     
     return undefined;
   }
