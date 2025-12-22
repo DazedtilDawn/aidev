@@ -8,6 +8,7 @@ import { normalizePath } from '../utils/index.js';
 import { PromptPackGenerator } from '../prompt/index.js';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { ProjectWatcher } from './watcher.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -21,6 +22,10 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
+
+// Start watcher
+const watcher = new ProjectWatcher(process.cwd(), io);
+watcher.start();
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
