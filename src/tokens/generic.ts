@@ -8,6 +8,8 @@ export class GenericTokenEstimator implements TokenEstimator {
   private readonly safetyBuffer = 0.10; // 10% buffer
 
   estimateText(text: string): number {
+    // Added safety check for empty strings
+    if (!text) return 0;
     const baseEstimate = Math.ceil(text.length / this.charsPerToken);
     return Math.ceil(baseEstimate * (1 + this.safetyBuffer));
   }
