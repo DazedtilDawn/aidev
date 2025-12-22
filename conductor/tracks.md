@@ -3,3 +3,6 @@
 This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
 
 ---
+
+## [ ] Track: Advanced Dependency Skeletons & Risk Analysis
+*Link: [./conductor/tracks/skeletons_risk_20251221/](./conductor/tracks/skeletons_risk_20251221/)*
