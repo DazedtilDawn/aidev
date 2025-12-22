@@ -28,7 +28,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Trash2,
-  Share2
+  Share2,
+  ChevronDown
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { 
@@ -40,9 +41,76 @@ import {
   forceCenter, 
   forceCollide 
 } from 'd3-force';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const API_BASE = 'http://localhost:3001/api';
 const SOCKET_URL = 'http://localhost:3001';
+
+/**
+ * Utility to parse backlog items from markdown
+ */
+const parseBacklog = (content: string): string[] => {
+  const lines = content.split('\n');
+  const backlogStart = lines.findIndex(l => l.includes('### Execution Backlog'));
+  if (backlogStart === -1) return [];
+
+  return lines.slice(backlogStart + 1)
+    .filter(l => l.trim().startsWith('- **'))
+    .map(l => l.replace('- **', '').replace('**', '').split(':')[0].trim());
+};
+
+/**
+ * Edge Report Panel Component
+ */
+const EdgeReportPanel = ({ content, onClose, onSync }: { content: string, onClose: () => void, onSync: (tasks: string[]) => void }) => {
+  const tasks = useMemo(() => parseBacklog(content), [content]);
+
+  return (
+    <div className="w-[500px] border-l border-zinc-800 bg-[#080808] flex flex-col z-20 shadow-2xl animate-in slide-in-from-right duration-500 overflow-hidden">
+      <div className="p-6 border-b border-zinc-800 bg-zinc-900/30 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
+            <Shield className="text-indigo-400" size={18} />
+          </div>
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-200">Edge Intel</h2>
+            <p className="text-[9px] text-zinc-500 font-mono">Tactical Decision Support</p>
+          </div>
+        </div>
+        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+          <X size={20} className="text-zinc-500" />
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <article className="prose prose-invert prose-zinc max-w-none 
+          prose-headings:font-black prose-headings:uppercase prose-headings:tracking-widest prose-headings:border-b prose-headings:border-white/5 prose-headings:pb-2
+          prose-p:text-zinc-400 prose-p:leading-relaxed prose-p:text-xs
+          prose-li:text-zinc-400 prose-li:text-xs
+          prose-strong:text-indigo-400 prose-strong:font-bold
+          prose-code:bg-zinc-900 prose-code:px-1 prose-code:rounded prose-code:text-[10px] prose-code:font-mono
+        ">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {content}
+          </ReactMarkdown>
+        </article>
+      </div>
+      <div className="p-6 border-t border-zinc-800 bg-black/40 space-y-3">
+        {tasks.length > 0 && (
+          <button 
+            onClick={() => onSync(tasks)}
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+          >
+            <CheckCircle2 size={14} /> Sync {tasks.length} Tasks to Plan
+          </button>
+        )}
+        <button className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)]">
+          <Zap size={14} /> Scaffold New Track
+        </button>
+      </div>
+    </div>
+  );
+};
 
 /**
  * Bespoke Node Component
@@ -112,12 +180,12 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
  * Prompt Preview Modal
  */
 const PromptPreviewModal = ({ content, onClose }: { content: string, onClose: () => void }) => {
-  const [copied, setSelected] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
-    setSelected(true);
-    setTimeout(() => setSelected(false), 2000);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -176,6 +244,40 @@ const ContextMenu = ({ x, y, onSelectNeighbors, onClose }: { x: number, y: numbe
   );
 };
 
+/**
+ * Terminal Panel Component
+ */
+const TerminalPanel = ({ logs, isOpen, onToggle }: { logs: any[], isOpen: boolean, onToggle: () => void }) => {
+  return (
+    <div className={`border-t border-zinc-800 bg-black/40 transition-all duration-500 overflow-hidden ${isOpen ? 'h-[240px]' : 'h-10'}`}>
+      <button 
+        onClick={onToggle}
+        className="w-full h-10 px-6 flex items-center justify-between hover:bg-white/5 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Terminal size={12} className={isOpen ? 'text-accent' : 'text-zinc-500'} />
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">System Pulse</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-[8px] font-mono text-zinc-600">{logs.length} events</span>
+          <ChevronDown size={14} className={`text-zinc-600 transition-transform duration-300 ${isOpen ? '' : 'rotate-180'}`} />
+        </div>
+      </button>
+      <div className="h-[200px] overflow-y-auto p-6 font-mono text-[9px] space-y-2 custom-scrollbar">
+        {logs.map(log => (
+          <div key={log.id} className="flex gap-3 group">
+            <span className="text-zinc-700 shrink-0">[{new Date(log.timestamp).toLocaleTimeString([], { hour12: false })}]</span>
+            <span className={log.type === 'error' ? 'text-red-400' : (log.type === 'success' ? 'text-emerald-400' : 'text-zinc-400')}>
+              {log.message}
+            </span>
+          </div>
+        ))}
+        {logs.length === 0 && <div className="text-zinc-800 italic">No system activity detected.</div>}
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -192,6 +294,8 @@ const App = () => {
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
   const [previewContent, setPreviewContent] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, nodeId: string } | null>(null);
+  const [systemLogs, setSystemLogs] = useState<Array<{ id: string, timestamp: string, message: string, type: string }>>([]);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
 
@@ -263,6 +367,15 @@ const App = () => {
     event.preventDefault();
     setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
   }, []);
+
+  const handleSyncTasks = async (tasks: string[]) => {
+    try {
+      await axios.post(`${API_BASE}/tracks/sync`, { tasks, objective: task });
+      showToast(`Synchronized ${tasks.length} tasks to project model.`, 'success');
+    } catch (error) {
+      showToast('Failed to synchronize tasks.', 'error');
+    }
+  };
 
   const fetchGraph = async () => {
     try {
@@ -344,6 +457,11 @@ const App = () => {
     const socket = io(SOCKET_URL);
     socket.on('graph_update', fetchGraph);
     
+    socket.on('system_log', (log) => {
+      setSystemLogs(prev => [log, ...prev].slice(0, 50));
+      if (log.type === 'error') setIsTerminalOpen(true);
+    });
+
     socket.on('indexing_progress', (data) => {
       setIsIndexing(true);
       setIndexingProgress(data);
@@ -445,7 +563,7 @@ const App = () => {
   return (
     <div className="flex h-screen w-screen bg-[#050505] text-zinc-100 overflow-hidden font-sans selection:bg-accent/30">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {previewContent && <PromptPreviewModal content={previewContent} onClose={() => setPreviewContent(null)} />}
+      {previewContent && selectedPreset !== 'edge-analyst' && <PromptPreviewModal content={previewContent} onClose={() => setPreviewContent(null)} />}
       
       {contextMenu && (
         <ContextMenu 
@@ -603,7 +721,7 @@ const App = () => {
           </section>
         </div>
 
-        <div className="p-8 border-t border-zinc-800/30 bg-black/40">
+        <div className="p-8 border-t border-zinc-800/30 bg-black/20">
           <button 
             onClick={generatePrompt}
             disabled={activeSelections.length === 0}
@@ -613,84 +731,101 @@ const App = () => {
             Assemble Edge Pack
           </button>
         </div>
+
+        <TerminalPanel 
+          logs={systemLogs} 
+          isOpen={isTerminalOpen} 
+          onToggle={() => setIsTerminalOpen(!isTerminalOpen)} 
+        />
       </aside>
 
       {/* Primary Visual Surface */}
-      <main className="flex-1 relative bg-[#050505]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent pointer-events-none" />
-        
-        {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-6">
-              <div className="relative">
-                <Zap className="text-accent animate-pulse" size={48} />
-                <div className="absolute inset-0 blur-2xl bg-accent/20 animate-pulse" />
+      <main className="flex-1 relative bg-[#050505] flex">
+        <div className="flex-1 relative">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent pointer-events-none" />
+          
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-6">
+                <div className="relative">
+                  <Zap className="text-accent animate-pulse" size={48} />
+                  <div className="absolute inset-0 blur-2xl bg-accent/20 animate-pulse" />
+                </div>
+                <span className="text-xs font-black uppercase tracking-[0.4em] text-zinc-500 animate-pulse">Resolving Codebase Topology</span>
               </div>
-              <span className="text-xs font-black uppercase tracking-[0.4em] text-zinc-500 animate-pulse">Resolving Codebase Topology</span>
+            </div>
+          ) : (
+            <ReactFlow 
+              nodes={highlightedNodes} 
+              edges={highlightedEdges}
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onNodeClick={onNodeClick}
+              onNodeMouseEnter={onNodeMouseEnter}
+              onNodeMouseLeave={onNodeMouseLeave}
+              onNodeContextMenu={onNodeContextMenu}
+              fitView
+              className="selection-none"
+            >
+              <Background color="#111" gap={24} size={1} />
+              <Controls className="!bg-zinc-900 !border-zinc-800 !fill-zinc-100 !rounded-xl !overflow-hidden !shadow-2xl" />
+            </ReactFlow>
+          )}
+          
+          {/* HUD Elements */}
+          <div className="absolute top-8 left-8 flex gap-4 pointer-events-none">
+            <div className="px-5 py-2.5 bg-zinc-900/80 backdrop-blur-2xl border border-zinc-800 rounded-2xl flex items-center gap-3 shadow-2xl">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+              <span className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Lattice Live</span>
             </div>
           </div>
-        ) : (
-          <ReactFlow 
-            nodes={highlightedNodes} 
-            edges={highlightedEdges}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onNodeClick={onNodeClick}
-            onNodeMouseEnter={onNodeMouseEnter}
-            onNodeMouseLeave={onNodeMouseLeave}
-            onNodeContextMenu={onNodeContextMenu}
-            fitView
-            className="selection-none"
-          >
-            <Background color="#111" gap={24} size={1} />
-            <Controls className="!bg-zinc-900 !border-zinc-800 !fill-zinc-100 !rounded-xl !overflow-hidden !shadow-2xl" />
-          </ReactFlow>
+
+          <div className="absolute top-8 right-8 flex gap-3">
+            <button 
+              onClick={() => fetchGraph()} 
+              className="p-3 bg-zinc-900/80 backdrop-blur-2xl border border-zinc-800 rounded-xl hover:border-accent/50 transition-all text-zinc-400 hover:text-white shadow-2xl"
+              title="Recalculate Layout"
+            >
+              <Maximize2 size={18} />
+            </button>
+          </div>
+
+          {/* Floating Legend */}
+          <div className="absolute bottom-8 left-8 p-7 bg-zinc-900/40 backdrop-blur-3xl border border-zinc-800/50 rounded-3xl shadow-2xl max-w-[320px]">
+            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.25em] mb-5 flex items-center gap-2">
+              <Filter size={14} className="text-accent" /> Heuristics
+            </h4>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 group">
+                <div className="w-3.5 h-3.5 bg-red-500/20 border border-red-500/50 rounded-md shadow-[0_0_10px_rgba(239,68,68,0.2)]" />
+                <span className="text-[11px] font-bold text-zinc-300">High Risk Factor</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-3.5 h-3.5 bg-amber-500/20 border border-amber-500/50 rounded-md shadow-[0_0_10px_rgba(245,158,11,0.2)]" />
+                <span className="text-[11px] font-bold text-zinc-300">Modular Bridge</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-3.5 h-3.5 bg-zinc-800 border border-zinc-700 rounded-md" />
+                <span className="text-[11px] font-bold text-zinc-300">Isolated Implementation</span>
+              </div>
+              <div className="pt-5 mt-5 border-t border-zinc-800/50">
+                <p className="text-[10px] leading-relaxed text-zinc-500 italic font-serif opacity-80">
+                  Force-directed positioning clusters files by directory depth. Toggle states via node interaction.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tactical HUD: Edge Intel Panel */}
+        {selectedPreset === 'edge-analyst' && previewContent && (
+          <EdgeReportPanel 
+            content={previewContent} 
+            onSync={handleSyncTasks}
+            onClose={() => setPreviewContent(null)} 
+          />
         )}
-        
-        {/* HUD Elements */}
-        <div className="absolute top-8 left-8 flex gap-4 pointer-events-none">
-          <div className="px-5 py-2.5 bg-zinc-900/80 backdrop-blur-2xl border border-zinc-800 rounded-2xl flex items-center gap-3 shadow-2xl">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Lattice Live</span>
-          </div>
-        </div>
-
-        <div className="absolute top-8 right-8 flex gap-3">
-           <button 
-            onClick={() => fetchGraph()} 
-            className="p-3 bg-zinc-900/80 backdrop-blur-2xl border border-zinc-800 rounded-xl hover:border-accent/50 transition-all text-zinc-400 hover:text-white shadow-2xl"
-            title="Recalculate Layout"
-           >
-             <Maximize2 size={18} />
-           </button>
-        </div>
-
-        {/* Floating Legend */}
-        <div className="absolute bottom-8 left-8 p-7 bg-zinc-900/40 backdrop-blur-3xl border border-zinc-800/50 rounded-3xl shadow-2xl max-w-[320px]">
-          <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.25em] mb-5 flex items-center gap-2">
-            <Filter size={14} className="text-accent" /> Heuristics
-          </h4>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 group">
-              <div className="w-3.5 h-3.5 bg-red-500/20 border border-red-500/50 rounded-md shadow-[0_0_10px_rgba(239,68,68,0.2)]" />
-              <span className="text-[11px] font-bold text-zinc-300">High Risk Factor</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-3.5 h-3.5 bg-amber-500/20 border border-amber-500/50 rounded-md shadow-[0_0_10px_rgba(245,158,11,0.2)]" />
-              <span className="text-[11px] font-bold text-zinc-300">Modular Bridge</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-3.5 h-3.5 bg-zinc-800 border border-zinc-700 rounded-md" />
-              <span className="text-[11px] font-bold text-zinc-300">Isolated Implementation</span>
-            </div>
-            <div className="pt-5 mt-5 border-t border-zinc-800/50">
-              <p className="text-[10px] leading-relaxed text-zinc-500 italic font-serif opacity-80">
-                Force-directed positioning clusters files by directory depth. Toggle states via node interaction.
-              </p>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );
