@@ -17,4 +17,6 @@ AI-assisted development context generator. Analyzes code changes, maps their imp
 - **Prompt Generation:** Optimized templates for Claude XML and OpenAI message formats.
 - **Smart Guidance (Presets):** Task-tuned prompt templates (Bugfix, Feature, Test, Refactor) that guide LLMs with structured workflows and constraints.
 - **Context Rationale:** Automatically explains why each file is included in the context bundle.
+- **Visual Context Dashboard (Mission Control):** A React-based visual interface for repository topology, risk analysis, and manual context orchestration.
+- **Real-time Sync (Ghost Mode):** Live updates between the filesystem and the dashboard using WebSockets and file watching.
 - **Automated Scanning (Planned):** TypeScript and Python AST scanners for automatic dependency discovery.

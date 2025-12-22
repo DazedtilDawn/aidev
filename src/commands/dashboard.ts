@@ -15,6 +15,7 @@ export const dashboardCommand = new Command('dashboard')
     // Start the headless server using tsx
     const serverProcess = spawn('npx', ['tsx', SERVER_PATH], {
       stdio: 'inherit',
+      shell: true,
       env: { ...process.env, PORT: '3001' }
     });
 

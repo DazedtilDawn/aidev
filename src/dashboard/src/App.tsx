@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import ReactFlow, { 
   Background, 
   Controls, 
-  Node, 
-  Edge,
+  type Node, 
+  type Edge,
   ConnectionLineType,
   MarkerType,
   Handle,
   Position,
-  NodeProps
+  type NodeProps
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import axios from 'axios';
@@ -21,7 +21,7 @@ const SOCKET_URL = 'http://localhost:3001';
 /**
  * Bespoke Node Component for Semantic Skeletons
  */
-const CustomNode = ({ data, id }: NodeProps) => {
+const CustomNode = ({ data }: NodeProps) => {
   const isHighRisk = data.risk === 'high';
   const isMediumRisk = data.risk === 'medium';
   

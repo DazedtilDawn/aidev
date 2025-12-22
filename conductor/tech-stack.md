@@ -10,6 +10,11 @@
 - **Frontmatter Parsing:** [gray-matter](https://github.com/jonschlinkert/gray-matter) - Parsing YAML frontmatter in prompt templates.
 - **Git Integration:** [simple-git](https://github.com/steveukx/node-simple-git) - Programmatic access to git diffs and status.
 - **YAML Parsing:** [js-yaml](https://github.com/nodeca/js-yaml) - Loading and saving project component definitions.
+- **Web Server:** [Express](https://expressjs.com/) - Powering the Mission Control API.
+- **Real-time Communication:** [Socket.io](https://socket.io/) - Real-time sync between server and dashboard.
+- **Frontend Framework:** [React](https://react.dev/) + [Vite](https://vitejs.dev/) - Modern dashboard development.
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS for the visual interface.
+- **Graph Visualization:** [reactflow](https://reactflow.dev/) - Interactive dependency mapping.
 - **Token Estimation:** [tiktoken](https://github.com/dqbd/tiktoken) - Accurate token counting for OpenAI models.
 - **CLI Styling:** [chalk](https://github.com/chalk/chalk) - Providing rich, colored terminal output.
 
