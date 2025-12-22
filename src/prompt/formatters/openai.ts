@@ -35,6 +35,9 @@ export class OpenAIFormatter implements PromptFormatter {
     for (const file of bundle.files) {
       const ext = file.path.split('.').pop() || '';
       parts.push(`### File: ${file.path}`);
+      if (file.reason) {
+        parts.push(`> Context: ${file.reason}\n`);
+      }
       parts.push(`\`\`\`${ext}\n${file.content}\n\`\`\`\n`);
     }
 

@@ -24,6 +24,12 @@ export interface ContextFile {
    * @example true // if content contains "[REDACTED:api_key]"
    */
   isRedacted?: boolean;
+
+  /**
+   * Explanation of why this file is included in the context.
+   * e.g. "Imports changed file X"
+   */
+  reason?: string;
 }
 
 /**

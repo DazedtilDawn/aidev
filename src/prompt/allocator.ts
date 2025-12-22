@@ -9,6 +9,7 @@ export interface ContextItem {
   tokens: number;
   priority: number;
   truncatable?: boolean;
+  reason?: string;
 }
 
 export interface CategoryBudget {

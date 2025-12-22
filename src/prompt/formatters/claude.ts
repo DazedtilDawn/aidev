@@ -19,7 +19,8 @@ export class ClaudeFormatter implements PromptFormatter {
 
     parts.push('  <files>');
     for (const file of bundle.files) {
-      parts.push(`    <file path="${file.path}">`);
+      const reasonAttr = file.reason ? ` reason="${this.escapeXml(file.reason)}"` : '';
+      parts.push(`    <file path="${file.path}"${reasonAttr}>`);
       parts.push(this.escapeXml(file.content));
       parts.push('    </file>');
     }

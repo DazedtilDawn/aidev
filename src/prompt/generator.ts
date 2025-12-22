@@ -175,7 +175,8 @@ export class PromptPackGenerator {
         .map(i => ({
           path: i.path!,
           content: i.content,
-          isRedacted: i.content.includes('[REDACTED:')
+          isRedacted: i.content.includes('[REDACTED:'),
+          reason: i.reason,
         })),
       instructions: this.options.taskDescription,
       tokenEstimate: allocation.totalTokens,
@@ -268,7 +269,8 @@ export class PromptPackGenerator {
         .map(i => ({
           path: i.path!,
           content: i.content,
-          isRedacted: i.content.includes('[REDACTED:')
+          isRedacted: i.content.includes('[REDACTED:'),
+          reason: i.reason,
         })),
       instructions: this.options.taskDescription,
       tokenEstimate: allocation.totalTokens
@@ -351,6 +353,7 @@ export class PromptPackGenerator {
           tokens: this.estimator.estimateText(itemContent),
           priority: 0.95,
           truncatable: true,
+          reason: 'Changed file',
         });
       }
     }
@@ -365,6 +368,11 @@ export class PromptPackGenerator {
         // Find the impact edge for confidence
         const edge = report.fileImpactEdges.find(e => e.target === filePath);
         const confidence = edge?.confidence ?? 0.7;
+        
+        let reason = 'Impacted file';
+        if (edge) {
+            reason = `Imported by ${edge.source}`; // Simplified reason
+        }
 
         const itemContent = raw 
           ? content 
@@ -377,6 +385,7 @@ export class PromptPackGenerator {
           tokens: this.estimator.estimateText(itemContent),
           priority: confidence,
           truncatable: true,
+          reason,
         });
       }
     }
