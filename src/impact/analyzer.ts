@@ -384,6 +384,15 @@ export class ImpactAnalyzer {
   }
 
   /**
+   * Generate a concise summary of why a file is impacted.
+   */
+  generateRelationshipSummary(file: string, changes: ChangedFile[]): string | undefined {
+    const trail = this.explainImpact(file, changes);
+    if (!trail) return undefined;
+    return trail.summary;
+  }
+
+  /**
    * Generate detailed evidence trail explaining why a specific file is impacted.
    * Uses BFS to find the shortest path from any changed file to the target.
    *

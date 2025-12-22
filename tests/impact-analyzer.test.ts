@@ -432,5 +432,28 @@ describe('ImpactAnalyzer', () => {
       expect(trail!.summary).toBeTruthy();
       expect(trail!.summary.length).toBeGreaterThan(20);
     });
+
+    it('generates a relationship summary', () => {
+      const modelWithEdge: ProjectModel = {
+        ...mockModel,
+        discoveredEdges: [
+          { source: 'src/utils/logger.ts', target: 'src/config.ts', type: 'import', confidence: 1, detection_method: 'ast' }
+        ]
+      };
+      // logger imports config. So config change impacts logger.
+      // Edge is source(importer) -> target(imported).
+      // source=logger, target=config.
+      // Changes to config (target) affect logger (source).
+      // Analyzer finds affected files by reverse edge traversal.
+      
+      const analyzer = new ImpactAnalyzer(modelWithEdge);
+      const summary = analyzer.generateRelationshipSummary('src/utils/logger.ts', [
+        { path: 'src/config.ts', changeType: 'modified' },
+      ]);
+
+      expect(summary).toBeDefined();
+      expect(summary).toContain('src/config.ts');
+      expect(summary).toContain('src/utils/logger.ts');
+    });
   });
 });
