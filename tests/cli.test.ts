@@ -7,5 +7,6 @@ describe('CLI', () => {
     expect(output).toContain('aidev');
     expect(output).toContain('impact');
     expect(output).toContain('prompt');
+    expect(output).toContain('generate-tests');
   });
 });

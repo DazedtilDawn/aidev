@@ -5,6 +5,7 @@ import { promptCommand } from './commands/prompt.js';
 import { syncCommand } from './commands/sync.js';
 import { initCommand } from './commands/init.js';
 import { stateCommand } from './commands/state.js';
+import { generateTestsCommand } from './commands/generate-tests.js';
 
 const program = new Command();
 
@@ -18,5 +19,6 @@ program.addCommand(impactCommand);
 program.addCommand(promptCommand);
 program.addCommand(syncCommand);
 program.addCommand(stateCommand);
+program.addCommand(generateTestsCommand);
 
 program.parse();
