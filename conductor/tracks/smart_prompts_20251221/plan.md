@@ -15,7 +15,7 @@
 - [x] Task: Conductor - User Manual Verification 'Template Library' (Protocol in workflow.md) [8677ecb]
 
 ## Phase 3: Active Context Summarization
-- [ ] Task: Update `ImpactAnalyzer` to generate a "relationship summary" string for each impacted file (e.g., "Imports changed file X").
+- [x] Task: Update `ImpactAnalyzer` to generate a "relationship summary" string for each impacted file (e.g., "Imports changed file X"). [04ffca3]
 - [ ] Task: Update `ContextBundle` to include these summaries.
 - [ ] Task: Update `ClaudeFormatter` and `OpenAIFormatter` to display the "Context Rationale" in the generated prompt.
 - [ ] Task: Conductor - User Manual Verification 'Active Context Summarization' (Protocol in workflow.md)
