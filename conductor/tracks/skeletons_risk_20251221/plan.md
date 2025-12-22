@@ -6,11 +6,11 @@
 - [x] Task: Add unit tests verifying that valid TS signatures are preserved while logic is removed. e1a5f31
 - [x] Task: Conductor - User Manual Verification 'Skeleton Extraction Logic' (Protocol in workflow.md) 4d0c109
 
-## Phase 2: Risk Analysis Engine
-- [ ] Task: Update `ImpactAnalyzer` to calculate `fanIn` for each node in the graph.
-- [ ] Task: Implement `calculateRisk(file, dependencies)` logic (High/Medium/Low).
-- [ ] Task: Update `ImpactReport` to include `risk` metadata for each affected file.
-- [ ] Task: Conductor - User Manual Verification 'Risk Analysis Engine' (Protocol in workflow.md)
+## Phase 2: Risk Analysis Engine [checkpoint: a8e8fec]
+- [x] Task: Update `ImpactAnalyzer` to calculate `fanIn` for each node in the graph. 14c962d
+- [x] Task: Implement `calculateRisk(file, dependencies)` logic (High/Medium/Low). 14c962d
+- [x] Task: Update `ImpactReport` to include `risk` metadata for each affected file. 14c962d
+- [x] Task: Conductor - User Manual Verification 'Risk Analysis Engine' (Protocol in workflow.md) a8e8fec
 
 ## Phase 3: Universal Packet Formatter [checkpoint: f6d4f25]
 - [x] Task: Create `UniversalFormatter` in `src/prompt/formatters/universal.ts`. a4c205f
