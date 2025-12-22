@@ -26,7 +26,13 @@ export class UniversalFormatter implements PromptFormatter {
       const reasonAttr = file.reason ? ` reason="${this.escapeXml(file.reason)}"` : '';
       const tag = file.isSkeleton ? 'skeleton' : 'file';
       
-      parts.push(`    <${tag} path="${file.path}"${reasonAttr}>`);
+      let metadataAttrs = '';
+      const metadata = bundle.impactReport.fileMetadata?.[file.path];
+      if (metadata) {
+        metadataAttrs = ` risk="${metadata.risk}" fan_in="${metadata.fanIn}"`;
+      }
+      
+      parts.push(`    <${tag} path="${file.path}"${reasonAttr}${metadataAttrs}>`);
       parts.push(this.escapeXml(file.content));
       parts.push(`    </${tag}>`);
     }

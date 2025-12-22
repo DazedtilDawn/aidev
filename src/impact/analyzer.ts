@@ -52,6 +52,10 @@ export interface ImpactReport {
   affectedFiles: string[];
   impactEdges: ImpactEdge[];
   fileImpactEdges: FileImpactEdge[];
+  fileMetadata?: Record<string, {
+    fanIn: number;
+    risk: 'high' | 'medium' | 'low';
+  }>;
   summary: {
     filesChanged: number;
     componentsAffected: number;
@@ -76,6 +80,21 @@ export class ImpactAnalyzer {
     const changedPaths = new Set(changes.map(c => normalizePath(c.path)));
     const { affectedFiles, fileImpactEdges } = this.findAffectedFiles(changedPaths);
 
+    // Calculate fan-in and risk metadata
+    const fileMetadata: Record<string, { fanIn: number; risk: 'high' | 'medium' | 'low' }> = {};
+    const reverseEdges = this.getReverseFileEdges();
+
+    for (const filePath of affectedFiles) {
+      const dependents = reverseEdges.get(filePath) || [];
+      const fanIn = dependents.length;
+      
+      let risk: 'high' | 'medium' | 'low' = 'low';
+      if (fanIn > 5) risk = 'high';
+      else if (fanIn > 2) risk = 'medium';
+
+      fileMetadata[filePath] = { fanIn, risk };
+    }
+
     const confidences = impactEdges.map(e => e.confidence);
     const confidenceMean = confidences.length > 0
       ? confidences.reduce((a, b) => a + b, 0) / confidences.length
@@ -88,6 +107,7 @@ export class ImpactAnalyzer {
       affectedFiles: Array.from(affectedFiles).sort(),
       impactEdges,
       fileImpactEdges,
+      fileMetadata,
       summary: {
         filesChanged: changes.length,
         componentsAffected: allAffected.size,
