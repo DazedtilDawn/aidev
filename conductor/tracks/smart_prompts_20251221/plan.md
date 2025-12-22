@@ -7,12 +7,12 @@
 - [x] Task: Update `PromptPackGenerator` to accept a resolved `Preset` and inject its content into the bundle. [121acbc]
 - [x] Task: Conductor - User Manual Verification 'Preset Architecture' (Protocol in workflow.md) [1dbd7a8]
 
-## Phase 2: Template Library (intelligence)
+## Phase 2: Template Library (intelligence) [checkpoint: 8677ecb]
 - [x] Task: Author the `bugfix` template with robust system instructions and workflow steps. [95d5267]
 - [x] Task: Author the `feature` template focusing on implementation planning and completeness. [95d5267]
 - [x] Task: Author the `refactor` template focusing on safety and non-functional improvements. [95d5267]
 - [x] Task: Author the `test` template focusing on coverage and edge cases. [95d5267]
-- [ ] Task: Conductor - User Manual Verification 'Template Library' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Template Library' (Protocol in workflow.md) [8677ecb]
 
 ## Phase 3: Active Context Summarization
 - [ ] Task: Update `ImpactAnalyzer` to generate a "relationship summary" string for each impacted file (e.g., "Imports changed file X").
