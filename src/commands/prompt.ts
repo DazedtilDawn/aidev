@@ -21,12 +21,13 @@ interface PromptOptions {
   copy?: boolean;
   arch?: boolean;
   contracts?: boolean;
+  skeleton?: boolean;
   json?: boolean;
 }
 
 export const promptCommand = new Command('prompt')
   .description('Generate prompt pack for AI assistants')
-  .option('--provider <name>', 'Target provider (claude, openai)', 'claude')
+  .option('--provider <name>', 'Target provider (claude, openai, universal)', 'claude')
   .option('--budget <tokens>', 'Token budget', '100000')
   .option('--format <type>', 'Output format (xml, json, text)')
   .option('--preset <name>', 'Select a built-in or local prompt template')
@@ -38,6 +39,7 @@ export const promptCommand = new Command('prompt')
   .option('--copy', 'Copy to clipboard (requires clipboardy)')
   .option('--arch', 'Include architecture documentation')
   .option('--contracts', 'Include component contracts')
+  .option('--skeleton', 'Use structural skeletons for dependencies')
   .option('--json', 'Output manifest as JSON only')
   .action(async (options: PromptOptions) => {
     try {
@@ -100,11 +102,12 @@ export const promptCommand = new Command('prompt')
       // Generate prompt pack
       const generator = new PromptPackGenerator({
         projectPath,
-        provider: options.provider as 'claude' | 'openai' | 'generic',
+        provider: options.provider as 'claude' | 'openai' | 'generic' | 'universal',
         budget: parseInt(options.budget, 10),
         taskDescription: options.task,
         includeArchitecture: options.arch,
         includeContracts: options.contracts,
+        useSkeletons: options.skeleton,
         preset: preset,
       });
 
@@ -116,8 +119,8 @@ export const promptCommand = new Command('prompt')
         return;
       }
 
-      const defaultExtension = options.provider === 'claude' ? '.xml' : '.json';
-      const defaultMimeType = options.provider === 'claude' ? 'text/xml' : 'application/json';
+      const defaultExtension = (options.provider === 'claude' || options.provider === 'universal') ? '.xml' : '.json';
+      const defaultMimeType = (options.provider === 'claude' || options.provider === 'universal') ? 'text/xml' : 'application/json';
 
       const extension = options.format === 'json' ? '.json' : (options.format === 'xml' ? '.xml' : defaultExtension);
       const mimeType = options.format === 'json' ? 'application/json' : (options.format === 'xml' ? 'text/xml' : defaultMimeType);
