@@ -1,8 +1,8 @@
 # Track Plan: Mission Control v2 (Advanced Visualization & Edge Integration)
 
 ## Phase 1: Edge Integration (The Mind)
-- [~] Task: Create `src/prompt/presets/templates/edge-analyst.md` with the EDGECRAFT prompt.
-- [ ] Task: Verify `aidev prompt --preset edge-analyst` generates the correct output format.
+- [x] Task: Create `src/prompt/presets/templates/edge-analyst.md` with the EDGECRAFT prompt. 8bcfb4c
+- [x] Task: Verify `aidev prompt --preset edge-analyst` generates the correct output format. 8bcfb4c
 
 ## Phase 2: Advanced Visualization (The Eye)
 - [ ] Task: Install `dagre` or `d3-force` for calculated layouts in Dashboard.
