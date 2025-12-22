@@ -9,6 +9,8 @@ import { normalizePath } from '../utils/index.js';
 import { PromptFormatter, ContextBundle } from './types.js';
 import { ClaudeFormatter } from './formatters/claude.js';
 import { OpenAIFormatter } from './formatters/openai.js';
+import { UniversalFormatter } from './formatters/universal.js';
+import { TypeScriptSkeletonExtractor } from '../scanners/index.js';
 import { Preset } from './presets/types.js';
 import { interpolate } from './presets/interpolator.js';
 
@@ -24,7 +26,7 @@ export interface GeneratorOptions {
   /**
    * Target LLM provider for token estimation and default formatting.
    */
-  provider: 'claude' | 'openai' | 'generic';
+  provider: 'claude' | 'openai' | 'generic' | 'universal';
   
   /**
    * Maximum allowed tokens for the entire context pack.
@@ -35,6 +37,11 @@ export interface GeneratorOptions {
    * Optional description of the task being performed.
    */
   taskDescription?: string;
+
+  /**
+   * Whether to use structural skeletons for dependencies to save tokens.
+   */
+  useSkeletons?: boolean;
   
   /**
    * Whether to include architecture documentation in the pack.
@@ -118,12 +125,14 @@ export class PromptPackGenerator {
   private estimator: TokenEstimator;
   private allocator: BudgetAllocator;
   private options: GeneratorOptions;
+  private tsSkeletonExtractor: TypeScriptSkeletonExtractor;
 
   constructor(options: GeneratorOptions) {
     this.options = options;
     this.redactor = new SecretRedactor();
     this.estimator = createEstimator(options.provider);
     this.allocator = new BudgetAllocator(options.budget);
+    this.tsSkeletonExtractor = new TypeScriptSkeletonExtractor();
   }
 
   /**
@@ -154,6 +163,8 @@ export class PromptPackGenerator {
         return new ClaudeFormatter();
       case 'openai':
         return new OpenAIFormatter();
+      case 'universal':
+        return new UniversalFormatter();
       default:
         return undefined;
     }
@@ -176,6 +187,7 @@ export class PromptPackGenerator {
           path: i.path!,
           content: i.content,
           isRedacted: i.content.includes('[REDACTED:'),
+          isSkeleton: i.category === 'impacted' && this.options.useSkeletons,
           reason: i.reason,
         })),
       instructions: this.options.taskDescription,
@@ -270,6 +282,7 @@ export class PromptPackGenerator {
           path: i.path!,
           content: i.content,
           isRedacted: i.content.includes('[REDACTED:'),
+          isSkeleton: i.category === 'impacted' && this.options.useSkeletons,
           reason: i.reason,
         })),
       instructions: this.options.taskDescription,
@@ -363,8 +376,14 @@ export class PromptPackGenerator {
     for (const filePath of report.affectedFiles) {
       if (changedPaths.has(normalizePath(filePath))) continue; // Skip already included
 
-      const content = this.readAndRedact(filePath);
+      let content = this.readAndRedact(filePath);
       if (content) {
+        // Apply skeleton extraction if enabled and file is TypeScript/JavaScript
+        const isTS = filePath.endsWith('.ts') || filePath.endsWith('.tsx');
+        if (this.options.useSkeletons && isTS) {
+          content = this.tsSkeletonExtractor.extractSkeleton(content);
+        }
+
         // Find the impact edge for confidence
         const edge = report.fileImpactEdges.find(e => e.target === filePath);
         const confidence = edge?.confidence ?? 0.7;
