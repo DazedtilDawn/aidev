@@ -14,11 +14,11 @@
 - [x] Task: Author the `test` template focusing on coverage and edge cases. [95d5267]
 - [x] Task: Conductor - User Manual Verification 'Template Library' (Protocol in workflow.md) [8677ecb]
 
-## Phase 3: Active Context Summarization
+## Phase 3: Active Context Summarization [checkpoint: 9dbf26e]
 - [x] Task: Update `ImpactAnalyzer` to generate a "relationship summary" string for each impacted file (e.g., "Imports changed file X"). [04ffca3]
 - [x] Task: Update `ContextBundle` to include these summaries. [1c30f64]
 - [x] Task: Update `ClaudeFormatter` and `OpenAIFormatter` to display the "Context Rationale" in the generated prompt. [1c30f64]
-- [ ] Task: Conductor - User Manual Verification 'Active Context Summarization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Active Context Summarization' (Protocol in workflow.md) [9dbf26e]
 
 ## Phase 4: QA + Docs + Release
 - [ ] Task: Add integration tests for `aidev prompt --preset <name>`.
