@@ -6,11 +6,11 @@
 - [x] Task: Implement `POST /api/prompt` to generate formatted context packets based on UI selection. ac1a296
 - [x] Task: Conductor - User Manual Verification 'Headless Server' (Protocol in workflow.md) ad25e64
 
-## Phase 2: Visual Dashboard (The Face)
+## Phase 2: Visual Dashboard (The Face) [checkpoint: 661e705]
 - [x] Task: Scaffold React + Vite application in `src/dashboard/`. 101c6a9
-- [x] Task: Implement Force-Directed Graph using `reactflow` to visualize dependencies and risk heatmaps. 101c6a9
-- [x] Task: Build the "Context Mixer" UI: Sidebar for file selection with Full/Skeleton/Exclude toggles. 101c6a9
-- [x] Task: Conductor - User Manual Verification 'Visual Dashboard' (Protocol in workflow.md) 0d207b3
+- [x] Task: Implement Force-Directed Graph using `reactflow` to visualize dependencies and risk heatmaps. 661e705
+- [x] Task: Build the "Context Mixer" UI: Sidebar for file selection with Full/Skeleton/Exclude toggles. 661e705
+- [x] Task: Conductor - User Manual Verification 'Visual Dashboard' (Protocol in workflow.md) 661e705
 
 ## Phase 3: Ghost Mode (Real-time Automation)
 - [x] Task: Integrate `chokidar` for file system watching. 1ab47c5
