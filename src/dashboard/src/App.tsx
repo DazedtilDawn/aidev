@@ -25,7 +25,15 @@ import {
   Filter
 } from 'lucide-react';
 import { io } from 'socket.io-client';
-import * as d3 from 'd3-force';
+import { 
+  forceSimulation, 
+  forceLink, 
+  forceManyBody, 
+  forceX, 
+  forceY, 
+  forceCenter, 
+  forceCollide 
+} from 'd3-force';
 
 const API_BASE = 'http://localhost:3001/api';
 const SOCKET_URL = 'http://localhost:3001';
@@ -77,11 +85,17 @@ const App = () => {
   const [task, setTask] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
   const fetchGraph = async () => {
     try {
       const response = await axios.get(`${API_BASE}/graph`);
       const { nodes: nodeData, edges: edgeData } = response.data;
+
+      if (!nodeData || nodeData.length === 0) {
+        setLoading(false);
+        return;
+      }
 
       // Extract directories for clustering
       const dirs: string[] = Array.from(new Set(nodeData.map((n: any) => n.path.split('/').slice(0, -1).join('/'))));
@@ -110,13 +124,13 @@ const App = () => {
       }));
 
       // Run D3 Simulation
-      const simulation = d3.forceSimulation(simulationNodes as any)
-        .force('link', d3.forceLink(simulationLinks).id((d: any) => d.id).distance(150))
-        .force('charge', d3.forceManyBody().strength(-300))
-        .force('x', d3.forceX().x((d: any) => dirCenters[d.data.dir]?.x || 0).strength(0.1))
-        .force('y', d3.forceY().y((d: any) => dirCenters[d.data.dir]?.y || 0).strength(0.1))
-        .force('center', d3.forceCenter(0, 0))
-        .force('collision', d3.forceCollide().radius(100))
+      const simulation = forceSimulation(simulationNodes as any)
+        .force('link', forceLink(simulationLinks).id((d: any) => d.id).distance(150))
+        .force('charge', forceManyBody().strength(-300))
+        .force('x', forceX().x((d: any) => dirCenters[d.data.dir]?.x || 0).strength(0.1))
+        .force('y', forceY().y((d: any) => dirCenters[d.data.dir]?.y || 0).strength(0.1))
+        .force('center', forceCenter(0, 0))
+        .force('collision', forceCollide().radius(100))
         .stop();
 
       // Run simulation to stability
@@ -126,7 +140,7 @@ const App = () => {
         id: n.id,
         type: 'custom',
         data: n.data,
-        position: { x: n.x + 600, y: n.y + 400 },
+        position: { x: n.x || 0 + 600, y: n.y || 0 + 400 }, // Fallback for NaN
       }));
 
       const formattedEdges = edgeData.map((e: any, i: number) => ({
@@ -153,6 +167,7 @@ const App = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching graph:', error);
+      setLoading(false);
     }
   };
 
@@ -163,184 +178,192 @@ const App = () => {
     return () => { socket.disconnect(); };
   }, []);
 
-    const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  
-    const onNodeMouseEnter = (_: any, node: Node) => setHoveredNode(node.id);
-    const onNodeMouseLeave = () => setHoveredNode(null);
-  
-    const highlightedEdges = useMemo(() => {
-      if (!hoveredNode) return edges;
-      return edges.map(e => ({
-        ...e,
-        style: { 
-          ...e.style, 
-          stroke: (e.source === hoveredNode || e.target === hoveredNode) ? '#3b82f6' : '#18181b',
-          strokeWidth: (e.source === hoveredNode || e.target === hoveredNode) ? 2 : 1,
-          opacity: (e.source === hoveredNode || e.target === hoveredNode) ? 1 : 0.1
-        },
-        animated: (e.source === hoveredNode || e.target === hoveredNode)
-      }));
-    }, [edges, hoveredNode]);
-  
-    const highlightedNodes = useMemo(() => {
-      const neighborIds = new Set<string>();
-      if (hoveredNode) {
-        edges.forEach(e => {
-          if (e.source === hoveredNode) neighborIds.add(e.target);
-          if (e.target === hoveredNode) neighborIds.add(e.source);
-        });
-        neighborIds.add(hoveredNode);
-      }
-  
-      return filteredNodes.map(n => ({
-        ...n,
-        style: {
-          ...n.style,
-          opacity: hoveredNode ? (neighborIds.has(n.id) ? 1 : 0.2) : 1,
-          transition: 'opacity 0.2s ease-in-out'
-        }
-      }));
-    }, [filteredNodes, edges, hoveredNode]);
-  
-    const onNodeClick = useCallback((_: any, node: Node) => {
-      setSelections(prev => {
-        const current = prev[node.id];
-        const next = current === 'exclude' ? 'full' : (current === 'full' ? 'skeleton' : 'exclude');
-        return { ...prev, [node.id]: next };
+  const onNodeMouseEnter = (_: any, node: Node) => setHoveredNode(node.id);
+  const onNodeMouseLeave = () => setHoveredNode(null);
+
+  const highlightedEdges = useMemo(() => {
+    if (!hoveredNode) return edges;
+    return edges.map(e => ({
+      ...e,
+      style: { 
+        ...e.style, 
+        stroke: (e.source === hoveredNode || e.target === hoveredNode) ? '#3b82f6' : '#18181b',
+        strokeWidth: (e.source === hoveredNode || e.target === hoveredNode) ? 2 : 1,
+        opacity: (e.source === hoveredNode || e.target === hoveredNode) ? 1 : 0.1
+      },
+      animated: (e.source === hoveredNode || e.target === hoveredNode)
+    }));
+  }, [edges, hoveredNode]);
+
+  const filteredNodes = useMemo(() => {
+    if (!search) return nodes;
+    return nodes.map(n => ({
+      ...n,
+      hidden: !n.data.label.toLowerCase().includes(search.toLowerCase()) && 
+              !n.data.path.toLowerCase().includes(search.toLowerCase())
+    }));
+  }, [nodes, search]);
+
+  const highlightedNodes = useMemo(() => {
+    const neighborIds = new Set<string>();
+    if (hoveredNode) {
+      edges.forEach(e => {
+        if (e.source === hoveredNode) neighborIds.add(e.target);
+        if (e.target === hoveredNode) neighborIds.add(e.source);
       });
-    }, []);
-  
-    const generatePrompt = async () => {
-      try {
-        const response = await axios.post(`${API_BASE}/prompt`, { 
-          selections, 
-          task,
-          provider: 'universal'
-        });
-        console.log('--- GENERATED PACK ---');
-        console.log(response.data.content);
-        alert('Context Packet copied to console (check DevTools)');
-      } catch (error) {
-        alert('Generation failed');
+      neighborIds.add(hoveredNode);
+    }
+
+    return filteredNodes.map(n => ({
+      ...n,
+      style: {
+        ...n.style,
+        opacity: hoveredNode ? (neighborIds.has(n.id) ? 1 : 0.2) : 1,
+        transition: 'opacity 0.2s ease-in-out'
       }
-    };
-  
-    const activeSelections = useMemo(() => 
-      Object.entries(selections).filter(([_, state]) => state !== 'exclude'),
-      [selections]
-    );
-  
-    return (
-      <div className="flex h-screen w-screen bg-[#050505] text-zinc-100 overflow-hidden font-sans">
-        {/* Sidebar: Orchestration Panel */}
-        <aside className="w-[420px] border-r border-zinc-800/50 bg-[#080808] flex flex-col z-10 shadow-2xl overflow-hidden">
-          <div className="p-8 border-b border-zinc-800/30 bg-black/20">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-accent/10 rounded-lg">
-                <Activity className="text-accent" size={20} />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold tracking-tight">Mission Control</h1>
-                <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">AIDEV context orchestrator</p>
-              </div>
+    }));
+  }, [filteredNodes, edges, hoveredNode]);
+
+  const onNodeClick = useCallback((_: any, node: Node) => {
+    setSelections(prev => {
+      const current = prev[node.id];
+      const next = current === 'exclude' ? 'full' : (current === 'full' ? 'skeleton' : 'exclude');
+      return { ...prev, [node.id]: next };
+    });
+  }, []);
+
+  const generatePrompt = async () => {
+    try {
+      const response = await axios.post(`${API_BASE}/prompt`, { 
+        selections, 
+        task,
+        provider: 'universal'
+      });
+      console.log('--- GENERATED PACK ---');
+      console.log(response.data.content);
+      alert('Context Packet copied to console (check DevTools)');
+    } catch (error) {
+      alert('Generation failed');
+    }
+  };
+
+  const activeSelections = useMemo(() => 
+    Object.entries(selections).filter(([_, state]) => state !== 'exclude'),
+    [selections]
+  );
+
+  return (
+    <div className="flex h-screen w-screen bg-[#050505] text-zinc-100 overflow-hidden font-sans">
+      {/* Sidebar: Orchestration Panel */}
+      <aside className="w-[420px] border-r border-zinc-800/50 bg-[#080808] flex flex-col z-10 shadow-2xl overflow-hidden">
+        <div className="p-8 border-b border-zinc-800/30 bg-black/20">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-2 bg-accent/10 rounded-lg">
+              <Activity className="text-accent" size={20} />
             </div>
-  
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-accent transition-colors" size={14} />
-              <input 
-                type="text"
-                placeholder="Filter nodes by name or path..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-xs focus:outline-none focus:border-accent/50 transition-all placeholder:text-zinc-700"
-              />
+            <div>
+              <h1 className="text-lg font-bold tracking-tight">Mission Control</h1>
+              <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">AIDEV context orchestrator</p>
             </div>
           </div>
-  
-          <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
-            <section className="space-y-3">
+
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-accent transition-colors" size={14} />
+            <input 
+              type="text"
+              placeholder="Filter nodes by name or path..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-xs focus:outline-none focus:border-accent/50 transition-all placeholder:text-zinc-700"
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+          <section className="space-y-3">
+            <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-tighter flex items-center gap-2">
+              <Terminal size={12} /> Strategic Brief
+            </label>
+            <textarea 
+              value={task}
+              onChange={(e) => setTask(e.target.value)}
+              placeholder="Define current development cycle..."
+              className="w-full h-32 bg-zinc-900/30 border border-zinc-800 rounded-xl p-4 text-sm focus:outline-none focus:border-accent/50 transition-colors placeholder:text-zinc-700 resize-none font-mono leading-relaxed"
+            />
+          </section>
+
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
               <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-tighter flex items-center gap-2">
-                <Terminal size={12} /> Strategic Brief
+                <Layers size={12} /> Context Mixer
               </label>
-              <textarea 
-                value={task}
-                onChange={(e) => setTask(e.target.value)}
-                placeholder="Define current development cycle..."
-                className="w-full h-32 bg-zinc-900/30 border border-zinc-800 rounded-xl p-4 text-sm focus:outline-none focus:border-accent/50 transition-colors placeholder:text-zinc-700 resize-none font-mono leading-relaxed"
-              />
-            </section>
-  
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-tighter flex items-center gap-2">
-                  <Layers size={12} /> Context Mixer
-                </label>
-                <div className="flex items-center gap-2">
-                  <Filter size={10} className="text-zinc-600" />
-                  <span className="text-[10px] font-mono text-accent">{activeSelections.length} active</span>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                {activeSelections.map(([path, state]) => (
-                  <div key={path} className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-800/50 rounded-lg group animate-in fade-in slide-in-from-left-2 duration-300">
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-medium truncate max-w-[180px]">{path.split('/').pop()}</span>
-                      <span className="text-[9px] text-zinc-600 truncate">{path}</span>
-                    </div>
-                    <div className={`px-2 py-1 rounded text-[8px] font-bold uppercase tracking-widest ${state === 'full' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'}`}>
-                      {state}
-                    </div>
-                  </div>
-                ))}
-                {activeSelections.length === 0 && (
-                  <div className="py-12 border-2 border-dashed border-zinc-900 rounded-xl flex flex-col items-center justify-center text-zinc-700 gap-2">
-                    <Box size={24} className="opacity-20" />
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-center px-8">Select nodes on the map to mix context</span>
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-  
-          <div className="p-8 border-t border-zinc-800/30 bg-black/20">
-            <button 
-              onClick={generatePrompt}
-              disabled={activeSelections.length === 0}
-              className="group relative w-full py-4 bg-zinc-100 text-black rounded-xl font-bold text-xs uppercase tracking-[0.2em] transition-all hover:bg-white active:scale-[0.98] disabled:opacity-20 disabled:grayscale overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.05)]"
-            >
-              <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-300 opacity-10" />
-              Assemble Edge Pack
-            </button>
-          </div>
-        </aside>
-  
-        {/* Primary Visual Surface */}
-        <main className="flex-1 relative bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-900/20 via-background to-background">
-          {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-4">
-                <Zap className="text-accent animate-pulse" size={32} />
-                <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-500">Calculating Repository Lattice</span>
+              <div className="flex items-center gap-2">
+                <Filter size={10} className="text-zinc-600" />
+                <span className="text-[10px] font-mono text-accent">{activeSelections.length} active</span>
               </div>
             </div>
-          ) : (
-            <ReactFlow 
-              nodes={highlightedNodes} 
-              edges={highlightedEdges}
-              nodeTypes={nodeTypes}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onNodeClick={onNodeClick}
-              onNodeMouseEnter={onNodeMouseEnter}
-              onNodeMouseLeave={onNodeMouseLeave}
-              fitView
-              className="selection-none"
-            >
-              <Background color="#18181b" gap={20} size={1} />
-              <Controls className="!bg-zinc-900 !border-zinc-800 !fill-zinc-100" />
-            </ReactFlow>
-          )}        
+            
+            <div className="space-y-2">
+              {activeSelections.map(([path, state]) => (
+                <div key={path} className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-800/50 rounded-lg group animate-in fade-in slide-in-from-left-2 duration-300">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-medium truncate max-w-[180px]">{path.split('/').pop()}</span>
+                    <span className="text-[9px] text-zinc-600 truncate">{path}</span>
+                  </div>
+                  <div className={`px-2 py-1 rounded text-[8px] font-bold uppercase tracking-widest ${state === 'full' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'}`}>
+                    {state}
+                  </div>
+                </div>
+              ))}
+              {activeSelections.length === 0 && (
+                <div className="py-12 border-2 border-dashed border-zinc-900 rounded-xl flex flex-col items-center justify-center text-zinc-700 gap-2">
+                  <Box size={24} className="opacity-20" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-center px-8">Select nodes on the map to mix context</span>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+
+        <div className="p-8 border-t border-zinc-800/30 bg-black/20">
+          <button 
+            onClick={generatePrompt}
+            disabled={activeSelections.length === 0}
+            className="group relative w-full py-4 bg-zinc-100 text-black rounded-xl font-bold text-xs uppercase tracking-[0.2em] transition-all hover:bg-white active:scale-[0.98] disabled:opacity-20 disabled:grayscale overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+          >
+            <div className="absolute inset-0 bg-accent translate-y-full group-hover:translate-y-0 transition-transform duration-300 opacity-10" />
+            Assemble Edge Pack
+          </button>
+        </div>
+      </aside>
+
+      {/* Primary Visual Surface */}
+      <main className="flex-1 relative bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-900/20 via-background to-background">
+        {loading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <Zap className="text-accent animate-pulse" size={32} />
+              <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-500">Calculating Repository Lattice</span>
+            </div>
+          </div>
+        ) : (
+          <ReactFlow 
+            nodes={highlightedNodes} 
+            edges={highlightedEdges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={onNodeClick}
+            onNodeMouseEnter={onNodeMouseEnter}
+            onNodeMouseLeave={onNodeMouseLeave}
+            fitView
+            className="selection-none"
+          >
+            <Background color="#18181b" gap={20} size={1} />
+            <Controls className="!bg-zinc-900 !border-zinc-800 !fill-zinc-100" />
+          </ReactFlow>
+        )}
+        
         {/* HUD Elements */}
         <div className="absolute top-8 left-8 flex gap-4 pointer-events-none">
           <div className="px-4 py-2 bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-full flex items-center gap-3 shadow-2xl">
