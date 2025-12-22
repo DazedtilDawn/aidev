@@ -20,9 +20,9 @@
 - [x] Task: Update `ClaudeFormatter` and `OpenAIFormatter` to display the "Context Rationale" in the generated prompt. [1c30f64]
 - [x] Task: Conductor - User Manual Verification 'Active Context Summarization' (Protocol in workflow.md) [9dbf26e]
 
-## Phase 4: QA + Docs + Release
-- [~] Task: Add integration tests for `aidev prompt --preset <name>`.
-- [~] Task: Update `aidev prompt` CLI command to support `--preset`, `--list-presets`, etc.
-- [ ] Task: Add documentation for creating custom presets.
-- [ ] Task: Final verification: generate prompts for AIDEV itself using the new presets.
-- [ ] Task: Conductor - User Manual Verification 'QA + Docs + Release' (Protocol in workflow.md)
+## Phase 4: QA + Docs + Release [checkpoint: dd7d43a]
+- [x] Task: Add integration tests for `aidev prompt --preset <name>`. [dd7d43a]
+- [x] Task: Update `aidev prompt` CLI command to support `--preset`, `--list-presets`, etc. [5c60284]
+- [x] Task: Add documentation for creating custom presets. [02b4f39]
+- [x] Task: Final verification: generate prompts for AIDEV itself using the new presets. [02b4f39]
+- [x] Task: Conductor - User Manual Verification 'QA + Docs + Release' (Protocol in workflow.md) [dd7d43a]
