@@ -12,11 +12,11 @@
 - [ ] Task: Update `ImpactReport` to include `risk` metadata for each affected file.
 - [ ] Task: Conductor - User Manual Verification 'Risk Analysis Engine' (Protocol in workflow.md)
 
-## Phase 3: Universal Packet Formatter
-- [ ] Task: Create `UniversalFormatter` in `src/prompt/formatters/universal.ts`.
-- [ ] Task: Implement the XML structure with `<skeleton>` tags and `<impact_graph>`.
-- [ ] Task: Wire up the `PromptPackGenerator` to use `SkeletonExtractor` for impacted files when a flag is set.
-- [ ] Task: Conductor - User Manual Verification 'Universal Packet Formatter' (Protocol in workflow.md)
+## Phase 3: Universal Packet Formatter [checkpoint: f6d4f25]
+- [x] Task: Create `UniversalFormatter` in `src/prompt/formatters/universal.ts`. a4c205f
+- [x] Task: Implement the XML structure with `<skeleton>` tags and `<impact_graph>`. a4c205f
+- [x] Task: Wire up the `PromptPackGenerator` to use `SkeletonExtractor` for impacted files when a flag is set. fb129cd
+- [x] Task: Conductor - User Manual Verification 'Universal Packet Formatter' (Protocol in workflow.md) f6d4f25
 
 ## Phase 4: CLI & Integration
 - [ ] Task: Add `--skeleton` flag to `aidev prompt`.
