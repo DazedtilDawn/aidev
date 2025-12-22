@@ -12,6 +12,7 @@
 - [x] Task: Add `--output` and `--force` flags to control where tests are written. 341407d
 - [x] Task: Conductor - User Manual Verification 'CLI Command' (Protocol in workflow.md) 81e67e6
 
-## Phase 3: Integration & Validation
-- [~] Task: Implement a "Dry Run" mode that prints the test code without writing to disk.
-- [ ] Task: Add integration tests that verify a generated test file can actually be run by Vitest.
+## Phase 3: Integration & Validation [checkpoint: 65deda0]
+- [x] Task: Implement a "Dry Run" mode that prints the test code without writing to disk. 341407d
+- [x] Task: Add integration tests that verify a generated test file can actually be run by Vitest. b18629d
+- [x] Task: Conductor - User Manual Verification 'Integration & Validation' (Protocol in workflow.md) 65deda0
