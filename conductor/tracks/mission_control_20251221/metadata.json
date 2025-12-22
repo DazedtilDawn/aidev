@@ -1,0 +1,8 @@
+{
+  "id": "mission_control_20251221",
+  "name": "Mission Control: Visual Context Dashboard",
+  "description": "A local web dashboard and headless server for visual dependency mapping, context orchestration, and real-time risk analysis.",
+  "created_at": "2025-12-22T09:02:00Z",
+  "status": "pending",
+  "phases": 3
+}

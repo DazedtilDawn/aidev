@@ -9,3 +9,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## [x] Track: Automated Test Scaffolding
 *Link: [./conductor/tracks/test_scaffolding_20251221/](./conductor/tracks/test_scaffolding_20251221/)*
+
+## [ ] Track: Mission Control: Visual Context Dashboard
+*Link: [./conductor/tracks/mission_control_20251221/](./conductor/tracks/mission_control_20251221/)*
