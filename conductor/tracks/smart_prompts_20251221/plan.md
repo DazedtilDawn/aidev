@@ -8,10 +8,10 @@
 - [x] Task: Conductor - User Manual Verification 'Preset Architecture' (Protocol in workflow.md) [1dbd7a8]
 
 ## Phase 2: Template Library (intelligence)
-- [ ] Task: Author the `bugfix` template with robust system instructions and workflow steps.
-- [ ] Task: Author the `feature` template focusing on implementation planning and completeness.
-- [ ] Task: Author the `refactor` template focusing on safety and non-functional improvements.
-- [ ] Task: Author the `test` template focusing on coverage and edge cases.
+- [x] Task: Author the `bugfix` template with robust system instructions and workflow steps. [95d5267]
+- [x] Task: Author the `feature` template focusing on implementation planning and completeness. [95d5267]
+- [x] Task: Author the `refactor` template focusing on safety and non-functional improvements. [95d5267]
+- [x] Task: Author the `test` template focusing on coverage and edge cases. [95d5267]
 - [ ] Task: Conductor - User Manual Verification 'Template Library' (Protocol in workflow.md)
 
 ## Phase 3: Active Context Summarization
