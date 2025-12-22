@@ -16,7 +16,7 @@
 
 ## Phase 3: Active Context Summarization
 - [x] Task: Update `ImpactAnalyzer` to generate a "relationship summary" string for each impacted file (e.g., "Imports changed file X"). [04ffca3]
-- [ ] Task: Update `ContextBundle` to include these summaries.
+- [x] Task: Update `ContextBundle` to include these summaries. [1c30f64]
 - [ ] Task: Update `ClaudeFormatter` and `OpenAIFormatter` to display the "Context Rationale" in the generated prompt.
 - [ ] Task: Conductor - User Manual Verification 'Active Context Summarization' (Protocol in workflow.md)
 
