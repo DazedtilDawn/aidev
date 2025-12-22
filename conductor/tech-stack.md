@@ -15,6 +15,7 @@
 - **Frontend Framework:** [React](https://react.dev/) + [Vite](https://vitejs.dev/) - Modern dashboard development.
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS for the visual interface.
 - **Graph Visualization:** [reactflow](https://reactflow.dev/) - Interactive dependency mapping.
+- **Physics Layout:** [d3-force](https://d3js.org/d3-force) - Force-directed graph layout for organic topology visualization.
 - **Token Estimation:** [tiktoken](https://github.com/dqbd/tiktoken) - Accurate token counting for OpenAI models.
 - **CLI Styling:** [chalk](https://github.com/chalk/chalk) - Providing rich, colored terminal output.
 
