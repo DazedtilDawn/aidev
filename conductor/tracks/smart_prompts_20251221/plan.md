@@ -1,11 +1,11 @@
 # Track Plan: Smart Prompt Templates & Presets
 
-## Phase 1: Preset Architecture (plumbing)
+## Phase 1: Preset Architecture (plumbing) [checkpoint: 1dbd7a8]
 - [x] Task: Define the template schema (frontmatter + body) and `Preset` interface in `src/prompt/presets/types.ts`. [2a8d3f5]
 - [x] Task: Create `PresetResolver` in `src/prompt/presets/resolver.ts` to handle built-ins and local loading. [5813074]
 - [x] Task: Implement variable interpolation logic (handle missing vars with actionable errors). [d960728]
 - [x] Task: Update `PromptPackGenerator` to accept a resolved `Preset` and inject its content into the bundle. [121acbc]
-- [ ] Task: Conductor - User Manual Verification 'Preset Architecture' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Preset Architecture' (Protocol in workflow.md) [1dbd7a8]
 
 ## Phase 2: Template Library (intelligence)
 - [ ] Task: Author the `bugfix` template with robust system instructions and workflow steps.
