@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Advanced Dependency Skeletons & Risk Analysis
+## [x] Track: Advanced Dependency Skeletons & Risk Analysis
 *Link: [./conductor/tracks/skeletons_risk_20251221/](./conductor/tracks/skeletons_risk_20251221/)*
