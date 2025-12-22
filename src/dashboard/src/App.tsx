@@ -86,6 +86,17 @@ const App = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [presets, setPresets] = useState<Array<{ id: string, title: string }>>([]);
+  const [selectedPreset, setSelectedPreset] = useState<string>('edge-analyst');
+
+  const fetchPresets = async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/presets`);
+      setPresets(response.data);
+    } catch (error) {
+      console.error('Failed to fetch presets:', error);
+    }
+  };
 
   const fetchGraph = async () => {
     try {
@@ -173,6 +184,7 @@ const App = () => {
 
   useEffect(() => {
     fetchGraph();
+    fetchPresets();
     const socket = io(SOCKET_URL);
     socket.on('graph_update', fetchGraph);
     return () => { socket.disconnect(); };
@@ -237,7 +249,8 @@ const App = () => {
       const response = await axios.post(`${API_BASE}/prompt`, { 
         selections, 
         task,
-        provider: 'universal'
+        provider: 'universal',
+        preset: selectedPreset
       });
       console.log('--- GENERATED PACK ---');
       console.log(response.data.content);
@@ -281,9 +294,30 @@ const App = () => {
 
         <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
           <section className="space-y-3">
-            <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-tighter flex items-center gap-2">
-              <Terminal size={12} /> Strategic Brief
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-tighter flex items-center gap-2">
+                <Terminal size={12} /> Strategic Brief
+              </label>
+              
+              <div className="flex items-center gap-2 bg-zinc-900/80 px-3 py-2 rounded-md border border-zinc-800 hover:border-accent/50 transition-colors relative z-20">
+                <Zap size={12} className="text-accent" />
+                <select 
+                  value={selectedPreset}
+                  onChange={(e) => setSelectedPreset(e.target.value)}
+                  className="bg-transparent text-[10px] font-mono uppercase tracking-widest text-zinc-300 focus:outline-none cursor-pointer w-full appearance-none pr-4"
+                  style={{ backgroundImage: 'none' }} // Force remove default arrow to control styling if needed, but for now let's just make it clickable
+                >
+                  <option value="" className="bg-zinc-900 text-zinc-300">Standard Prompt</option>
+                  {presets.map(p => (
+                    <option key={p.id} value={p.id} className="bg-zinc-900 text-zinc-300">{p.title}</option>
+                  ))}
+                </select>
+                {/* Custom Arrow */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+              </div>
+            </div>
             <textarea 
               value={task}
               onChange={(e) => setTask(e.target.value)}
