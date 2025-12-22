@@ -18,7 +18,7 @@
 - [x] Task: Wire up the `PromptPackGenerator` to use `SkeletonExtractor` for impacted files when a flag is set. fb129cd
 - [x] Task: Conductor - User Manual Verification 'Universal Packet Formatter' (Protocol in workflow.md) f6d4f25
 
-## Phase 4: CLI & Integration
-- [ ] Task: Add `--skeleton` flag to `aidev prompt`.
-- [ ] Task: Add integration tests ensuring the `--skeleton` flag produces reduced token counts compared to full output.
-- [ ] Task: Conductor - User Manual Verification 'CLI & Integration' (Protocol in workflow.md)
+## Phase 4: CLI & Integration [checkpoint: 52f8fd0]
+- [x] Task: Add `--skeleton` flag to `aidev prompt`. bd8ea3b
+- [x] Task: Add integration tests ensuring the `--skeleton` flag produces reduced token counts compared to full output. 7fdabf5
+- [x] Task: Conductor - User Manual Verification 'CLI & Integration' (Protocol in workflow.md) 52f8fd0
