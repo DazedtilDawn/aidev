@@ -151,6 +151,31 @@ const PromptPreviewModal = ({ content, onClose }: { content: string, onClose: ()
   );
 };
 
+/**
+ * Context Menu Component
+ */
+const ContextMenu = ({ x, y, onSelectNeighbors, onClose }: { x: number, y: number, onSelectNeighbors: () => void, onClose: () => void }) => {
+  useEffect(() => {
+    const handleClick = () => onClose();
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [onClose]);
+
+  return (
+    <div 
+      style={{ top: y, left: x }} 
+      className="fixed z-[100] bg-[#0a0a0a] border border-zinc-800 rounded-lg shadow-xl py-1 w-48 animate-in fade-in zoom-in-95 duration-100"
+    >
+      <button 
+        onClick={(e) => { e.stopPropagation(); onSelectNeighbors(); onClose(); }}
+        className="w-full px-4 py-2 text-left text-[10px] font-mono uppercase tracking-widest text-zinc-300 hover:bg-zinc-900 hover:text-accent transition-colors flex items-center gap-2"
+      >
+        <Share2 size={12} /> Select Neighbors
+      </button>
+    </div>
+  );
+};
+
 const App = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -166,6 +191,7 @@ const App = () => {
   const [isIndexed, setIsIndexed] = useState(false);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
   const [previewContent, setPreviewContent] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, nodeId: string } | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
 
@@ -216,6 +242,27 @@ const App = () => {
       showToast('Semantic search failed.', 'error');
     }
   };
+
+  const handleSelectNeighbors = () => {
+    if (!contextMenu) return;
+    const { nodeId } = contextMenu;
+    
+    setSelections(prev => {
+      const next = { ...prev };
+      next[nodeId] = 'full';
+      edges.forEach(e => {
+        if (e.source === nodeId) next[e.target] = 'skeleton';
+        if (e.target === nodeId) next[e.source] = 'skeleton'; 
+      });
+      return next;
+    });
+    showToast('Cluster selected (Source + Neighbors).', 'success');
+  };
+
+  const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
+  }, []);
 
   const fetchGraph = async () => {
     try {
@@ -399,6 +446,15 @@ const App = () => {
     <div className="flex h-screen w-screen bg-[#050505] text-zinc-100 overflow-hidden font-sans selection:bg-accent/30">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {previewContent && <PromptPreviewModal content={previewContent} onClose={() => setPreviewContent(null)} />}
+      
+      {contextMenu && (
+        <ContextMenu 
+          x={contextMenu.x} 
+          y={contextMenu.y} 
+          onSelectNeighbors={handleSelectNeighbors} 
+          onClose={() => setContextMenu(null)} 
+        />
+      )}
 
       {/* Sidebar: Orchestration Panel */}
       <aside className="w-[420px] border-r border-zinc-800/50 bg-[#080808] flex flex-col z-10 shadow-2xl overflow-hidden backdrop-blur-2xl">
@@ -583,6 +639,7 @@ const App = () => {
             onNodeClick={onNodeClick}
             onNodeMouseEnter={onNodeMouseEnter}
             onNodeMouseLeave={onNodeMouseLeave}
+            onNodeContextMenu={onNodeContextMenu}
             fitView
             className="selection-none"
           >
@@ -625,11 +682,11 @@ const App = () => {
             </div>
             <div className="flex items-center gap-4">
               <div className="w-3.5 h-3.5 bg-zinc-800 border border-zinc-700 rounded-md" />
-              <span className="text-[11px] font-bold text-zinc-300">Isolated Unit</span>
+              <span className="text-[11px] font-bold text-zinc-300">Isolated Implementation</span>
             </div>
             <div className="pt-5 mt-5 border-t border-zinc-800/50">
               <p className="text-[10px] leading-relaxed text-zinc-500 italic font-serif opacity-80">
-                Force-directed positioning clusters files by directory depth. Interactive toggles orchestrate the context mix.
+                Force-directed positioning clusters files by directory depth. Toggle states via node interaction.
               </p>
             </div>
           </div>
