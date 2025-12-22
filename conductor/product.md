@@ -19,5 +19,5 @@ AI-assisted development context generator. Analyzes code changes, maps their imp
 - **Context Rationale:** Automatically explains why each file is included in the context bundle.
 - **Visual Context Dashboard (Mission Control):** A React-based visual interface for repository topology, risk analysis, and manual context orchestration.
 - **Real-time Sync (Ghost Mode):** Live updates between the filesystem and the dashboard using WebSockets and file watching.
-- **Edge Analyst Persona:** Built-in "Edge Analyst" preset for strategic, high-value AI interactions.
+- **Edge Analyst Persona:** Built-in "Edge Analyst" preset, selectable via GUI, for strategic, high-value AI interactions.
 - **Automated Scanning (Planned):** TypeScript and Python AST scanners for automatic dependency discovery.
