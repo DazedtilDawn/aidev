@@ -14,6 +14,7 @@
 - **Real-time Communication:** [Socket.io](https://socket.io/) - Real-time sync between server and dashboard.
 - **Frontend Framework:** [React](https://react.dev/) + [Vite](https://vitejs.dev/) - Modern dashboard development.
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS for the visual interface.
+- **Markdown Rendering:** [react-markdown](https://github.com/remarkjs/react-markdown) + [remark-gfm](https://github.com/remarkjs/remark-gfm) - Renders high-fidelity tactical reports.
 - **Graph Visualization:** [reactflow](https://reactflow.dev/) - Interactive dependency mapping.
 - **Local Embeddings:** [LM Studio](https://lmstudio.ai/) - Local inference server for privacy-preserving codebase indexing.
 - **Physics Layout:** [d3-force](https://d3js.org/d3-force) - Force-directed graph layout for organic topology visualization.
