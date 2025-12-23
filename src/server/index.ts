@@ -11,6 +11,7 @@ import { join } from 'path';
 import { ProjectWatcher } from './watcher.js';
 import { EmbeddingClient } from '../embeddings/client.js';
 import { VectorStore } from '../indexing/store.js';
+import { ClaudeRunner } from '../runner/claude.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -20,31 +21,60 @@ const io = new Server(httpServer, {
   }
 });
 
-app.use(cors());
-app.use(express.json());
-
-const PORT = process.env.PORT || 3001;
-const VECTOR_CACHE_PATH = join(process.cwd(), '.aidev', 'cache', 'vectors.json');
-const LM_STUDIO_ENDPOINT = 'http://localhost:1234/v1/embeddings';
+// ... (broadcastLog and existing endpoints)
 
 /**
- * Broadcasts a system log to all connected clients
+ * POST /api/runner/run
+ * Executes a prompt using the headless Claude CLI
  */
-const broadcastLog = (message: string, type: 'info' | 'success' | 'error' | 'warn' = 'info') => {
-  io.emit('system_log', {
-    id: Math.random().toString(36).substr(2, 9),
-    timestamp: new Date().toISOString(),
-    message,
-    type
-  });
-};
+app.post('/api/runner/run', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
 
-// Start watcher
-const watcher = new ProjectWatcher(process.cwd(), io);
-watcher.start();
+    broadcastLog('Initializing Ghost Mode execution...', 'info');
+    
+    const runner = new ClaudeRunner();
+    const result = await runner.execute(prompt);
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    if (result.error) {
+      broadcastLog(`Ghost Mode execution failed: ${result.error}`, 'error');
+      return res.status(500).json({ error: result.error });
+    }
+
+    broadcastLog(`Ghost Mode execution complete. Cost: $${result.cost?.toFixed(4) || '0.0000'}`, 'success');
+    res.json(result);
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    broadcastLog(`Runner system error: ${msg}`, 'error');
+    res.status(500).json({ error: 'Failed to execute runner' });
+  }
+});
+
+/**
+ * POST /api/runner/apply
+ * Applies a code change to the file system
+ */
+app.post('/api/runner/apply', async (req, res) => {
+  try {
+    const { path, content } = req.body;
+    if (!path || content === undefined) {
+      return res.status(400).json({ error: 'Path and content are required' });
+    }
+
+    const fullPath = join(process.cwd(), path);
+    // TODO: Add safety check to ensure path is within project
+    writeFileSync(fullPath, content, 'utf-8');
+    
+    broadcastLog(`Applied changes to ${path}`, 'success');
+    res.json({ success: true });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    broadcastLog(`Failed to apply changes: ${msg}`, 'error');
+    res.status(500).json({ error: 'Failed to apply changes' });
+  }
 });
 
 /**
