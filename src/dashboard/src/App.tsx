@@ -29,7 +29,8 @@ import {
   AlertCircle,
   Trash2,
   Share2,
-  ChevronDown
+  ChevronDown,
+  Play
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { 
@@ -61,9 +62,43 @@ const parseBacklog = (content: string): string[] => {
 };
 
 /**
+ * Execution Modal Component
+ */
+const ExecutionModal = ({ isOpen, onClose, logs }: { isOpen: boolean, onClose: () => void, logs: any[] }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="w-full max-w-3xl bg-[#0a0a0a] border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[600px]">
+        <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Terminal size={18} className="text-accent" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-400">Ghost Mode Execution</h2>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+            <X size={20} className="text-zinc-500" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto p-6 bg-black font-mono text-xs space-y-2">
+          {logs.map((log, i) => (
+            <div key={i} className="flex gap-3 border-b border-white/5 pb-2 last:border-0">
+              <span className="text-zinc-600 shrink-0">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+              <span className={log.type === 'error' ? 'text-red-400' : (log.type === 'success' ? 'text-emerald-400' : 'text-zinc-300')}>
+                {log.message}
+              </span>
+            </div>
+          ))}
+          {logs.length === 0 && <div className="text-zinc-600 italic">Waiting for execution to start...</div>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
  * Edge Report Panel Component
  */
-const EdgeReportPanel = ({ content, onClose, onSync }: { content: string, onClose: () => void, onSync: (tasks: string[]) => void }) => {
+const EdgeReportPanel = ({ content, onClose, onSync, onRun }: { content: string, onClose: () => void, onSync: (tasks: string[]) => void, onRun: () => void }) => {
   const tasks = useMemo(() => parseBacklog(content), [content]);
 
   return (
@@ -96,6 +131,12 @@ const EdgeReportPanel = ({ content, onClose, onSync }: { content: string, onClos
         </article>
       </div>
       <div className="p-6 border-t border-zinc-800 bg-black/40 space-y-3">
+        <button 
+          onClick={onRun}
+          className="w-full py-4 bg-accent hover:bg-accent/80 text-white rounded-xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(59,130,246,0.4)] animate-pulse"
+        >
+          <Play size={16} /> Run in Ghost Mode
+        </button>
         {tasks.length > 0 && (
           <button 
             onClick={() => onSync(tasks)}
@@ -180,12 +221,12 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
  * Prompt Preview Modal
  */
 const PromptPreviewModal = ({ content, onClose }: { content: string, onClose: () => void }) => {
-  const [copied, setCopied] = useState(false);
+  const [copied, setSelected] = useState(false);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setSelected(true);
+    setTimeout(() => setSelected(false), 2000);
   };
 
   return (
@@ -296,7 +337,9 @@ const App = () => {
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, nodeId: string } | null>(null);
   const [systemLogs, setSystemLogs] = useState<Array<{ id: string, timestamp: string, message: string, type: string }>>([]);
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
 
+  // Helper functions
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type });
 
   const fetchPresets = async () => {
@@ -317,66 +360,7 @@ const App = () => {
     }
   };
 
-  const handleStartIndexing = async () => {
-    setIsIndexing(true);
-    showToast('Initializing local embedding pipeline...', 'info');
-    try {
-      await axios.post(`${API_BASE}/indexing/run`);
-    } catch (error) {
-      showToast('Indexing failed. Is LM Studio running?', 'error');
-      setIsIndexing(false);
-    }
-  };
-
-  const handleAutoSelect = async () => {
-    if (!task) return;
-    try {
-      const response = await axios.post(`${API_BASE}/context/auto-select`, { objective: task });
-      const matches = response.data.matches as Array<{ path: string }>;
-      
-      setSelections(prev => {
-        const next = { ...prev };
-        matches.forEach(m => {
-          next[m.path] = 'full';
-        });
-        return next;
-      });
-      showToast(`Selected ${matches.length} relevant files.`, 'success');
-    } catch (error) {
-      showToast('Semantic search failed.', 'error');
-    }
-  };
-
-  const handleSelectNeighbors = () => {
-    if (!contextMenu) return;
-    const { nodeId } = contextMenu;
-    
-    setSelections(prev => {
-      const next = { ...prev };
-      next[nodeId] = 'full';
-      edges.forEach(e => {
-        if (e.source === nodeId) next[e.target] = 'skeleton';
-        if (e.target === nodeId) next[e.source] = 'skeleton'; 
-      });
-      return next;
-    });
-    showToast('Cluster selected (Source + Neighbors).', 'success');
-  };
-
-  const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
-    event.preventDefault();
-    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
-  }, []);
-
-  const handleSyncTasks = async (tasks: string[]) => {
-    try {
-      await axios.post(`${API_BASE}/tracks/sync`, { tasks, objective: task });
-      showToast(`Synchronized ${tasks.length} tasks to project model.`, 'success');
-    } catch (error) {
-      showToast('Failed to synchronize tasks.', 'error');
-    }
-  };
-
+  // Define graph fetching before useEffect
   const fetchGraph = async () => {
     try {
       const response = await axios.get(`${API_BASE}/graph`);
@@ -449,6 +433,7 @@ const App = () => {
     }
   };
 
+  // Effects
   useEffect(() => {
     fetchGraph();
     fetchPresets();
@@ -477,14 +462,120 @@ const App = () => {
     return () => { socket.disconnect(); };
   }, []);
 
+  // Event Handlers
+  const handleStartIndexing = async () => {
+    setIsIndexing(true);
+    showToast('Initializing local embedding pipeline...', 'info');
+    try {
+      await axios.post(`${API_BASE}/indexing/run`);
+    } catch (error) {
+      showToast('Indexing failed. Is LM Studio running?', 'error');
+      setIsIndexing(false);
+    }
+  };
+
+  const handleAutoSelect = async () => {
+    if (!task) return;
+    try {
+      const response = await axios.post(`${API_BASE}/context/auto-select`, { objective: task });
+      const matches = response.data.matches as Array<{ path: string }>;
+      
+      setSelections(prev => {
+        const next = { ...prev };
+        matches.forEach(m => {
+          next[m.path] = 'full';
+        });
+        return next;
+      });
+      showToast(`Selected ${matches.length} relevant files.`, 'success');
+    } catch (error) {
+      showToast('Semantic search failed.', 'error');
+    }
+  };
+
+  const handleSelectNeighbors = () => {
+    if (!contextMenu) return;
+    const { nodeId } = contextMenu;
+    
+    setSelections(prev => {
+      const next = { ...prev };
+      next[nodeId] = 'full';
+      edges.forEach(e => {
+        if (e.source === nodeId) next[e.target] = 'skeleton';
+        if (e.target === nodeId) next[e.source] = 'skeleton'; 
+      });
+      return next;
+    });
+    showToast('Cluster selected (Source + Neighbors).', 'success');
+  };
+
+  const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
+  }, []);
+
+  const handleSyncTasks = async (tasks: string[]) => {
+    try {
+      await axios.post(`${API_BASE}/tracks/sync`, { tasks, objective: task });
+      showToast(`Synchronized ${tasks.length} tasks to project model.`, 'success');
+    } catch (error) {
+      showToast('Failed to synchronize tasks.', 'error');
+    }
+  };
+
+  const handleRunGhostMode = async () => {
+    if (!previewContent) return;
+    setIsExecuting(true);
+    try {
+      await axios.post(`${API_BASE}/runner/run`, { prompt: previewContent });
+    } catch (error) {
+      showToast('Ghost Mode execution failed.', 'error');
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
   const onNodeMouseEnter = (_: any, node: Node) => setHoveredNode(node.id);
   const onNodeMouseLeave = () => setHoveredNode(null);
 
+  const onNodeClick = useCallback((_: any, node: Node) => {
+    setSelections(prev => {
+      const current = prev[node.id];
+      const next = current === 'exclude' ? 'full' : (current === 'full' ? 'skeleton' : 'exclude');
+      return { ...prev, [node.id]: next };
+    });
+  }, []);
+
+  const generatePrompt = async () => {
+    try {
+      const response = await axios.post(`${API_BASE}/prompt`, { 
+        selections, 
+        task,
+        provider: 'universal',
+        preset: selectedPreset
+      });
+      setPreviewContent(response.data.content);
+      showToast('Context Pack assembled successfully.', 'success');
+    } catch (error) {
+      showToast('Generation failed.', 'error');
+    }
+  };
+
+  const handleClearMixer = () => {
+    setSelections(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => next[k] = 'exclude');
+      return next;
+    });
+    showToast('Context mixer cleared.', 'info');
+  };
+
+  // Memos
   const highlightedEdges = useMemo(() => {
     if (!hoveredNode) return edges;
     return edges.map(e => ({
       ...e,
-      style: { 
+      style: {
         ...e.style, 
         stroke: (e.source === hoveredNode || e.target === hoveredNode) ? '#3b82f6' : '#18181b',
         strokeWidth: (e.source === hoveredNode || e.target === hoveredNode) ? 2 : 1,
@@ -523,38 +614,6 @@ const App = () => {
     }));
   }, [filteredNodes, edges, hoveredNode]);
 
-  const onNodeClick = useCallback((_: any, node: Node) => {
-    setSelections(prev => {
-      const current = prev[node.id];
-      const next = current === 'exclude' ? 'full' : (current === 'full' ? 'skeleton' : 'exclude');
-      return { ...prev, [node.id]: next };
-    });
-  }, []);
-
-  const generatePrompt = async () => {
-    try {
-      const response = await axios.post(`${API_BASE}/prompt`, { 
-        selections, 
-        task,
-        provider: 'universal',
-        preset: selectedPreset
-      });
-      setPreviewContent(response.data.content);
-      showToast('Context Pack assembled successfully.', 'success');
-    } catch (error) {
-      showToast('Generation failed.', 'error');
-    }
-  };
-
-  const handleClearMixer = () => {
-    setSelections(prev => {
-      const next = { ...prev };
-      Object.keys(next).forEach(k => next[k] = 'exclude');
-      return next;
-    });
-    showToast('Context mixer cleared.', 'info');
-  };
-
   const activeSelections = useMemo(() => 
     Object.entries(selections).filter(([_, state]) => state !== 'exclude'),
     [selections]
@@ -564,6 +623,13 @@ const App = () => {
     <div className="flex h-screen w-screen bg-[#050505] text-zinc-100 overflow-hidden font-sans selection:bg-accent/30">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {previewContent && selectedPreset !== 'edge-analyst' && <PromptPreviewModal content={previewContent} onClose={() => setPreviewContent(null)} />}
+      {isExecuting && (
+        <ExecutionModal 
+          isOpen={isExecuting} 
+          onClose={() => setIsExecuting(false)} 
+          logs={systemLogs.filter(l => l.message.includes('Ghost Mode') || l.message.includes('Runner'))} 
+        />
+      )}
       
       {contextMenu && (
         <ContextMenu 
@@ -721,7 +787,7 @@ const App = () => {
           </section>
         </div>
 
-        <div className="p-8 border-t border-zinc-800/30 bg-black/20">
+        <div className="p-8 border-t border-zinc-800/30 bg-black/40">
           <button 
             onClick={generatePrompt}
             disabled={activeSelections.length === 0}
@@ -823,6 +889,7 @@ const App = () => {
           <EdgeReportPanel 
             content={previewContent} 
             onSync={handleSyncTasks}
+            onRun={handleRunGhostMode}
             onClose={() => setPreviewContent(null)} 
           />
         )}
