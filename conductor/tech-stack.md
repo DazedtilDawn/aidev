@@ -17,6 +17,7 @@
 - **Markdown Rendering:** [react-markdown](https://github.com/remarkjs/react-markdown) + [remark-gfm](https://github.com/remarkjs/remark-gfm) - Renders high-fidelity tactical reports.
 - **Graph Visualization:** [reactflow](https://reactflow.dev/) - Interactive dependency mapping.
 - **Local Embeddings:** [LM Studio](https://lmstudio.ai/) - Local inference server for privacy-preserving codebase indexing.
+- **AI Execution:** [Claude Code](https://code.claude.com/) - Headless CLI integration for autonomous code generation.
 - **Physics Layout:** [d3-force](https://d3js.org/d3-force) - Force-directed graph layout for organic topology visualization.
 - **Token Estimation:** [tiktoken](https://github.com/dqbd/tiktoken) - Accurate token counting for OpenAI models.
 - **CLI Styling:** [chalk](https://github.com/chalk/chalk) - Providing rich, colored terminal output.

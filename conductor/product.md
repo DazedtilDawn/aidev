@@ -23,6 +23,7 @@ AI-assisted development context generator. Analyzes code changes, maps their imp
 - **Semantic Auto-Pilot:** Intent-based context selection using local codebase embeddings (LM Studio integration).
 - **Tactical Intelligence (HUD):** Real-time strategic report rendering (Edge Analyst logic) directly in the dashboard.
 - **Command Automation:** One-click promotion of strategic briefs to Conductor Tracks.
+- **Ghost Mode Execution:** Direct integration with Claude Code CLI for headless prompt execution and response handling.
 - **Real-time System Pulse:** Live terminal HUD for monitoring indexing, server activity, and system state.
 - **Context Verification:** Prompt Preview Modal allows audit of the generated packet before use.
 - **Feedback System:** Non-blocking Toast notifications for seamless workflow integration.
