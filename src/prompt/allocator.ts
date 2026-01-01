@@ -1,6 +1,7 @@
 import { createEstimator, TokenEstimator } from '../tokens/index.js';
 
 export type ContextCategory = 'task' | 'changed' | 'impacted' | 'contract' | 'architecture' | 'decision';
+export type FidelityLevel = 'full' | 'skeleton' | 'abstract' | 'exclude';
 
 export interface ContextItem {
   category: ContextCategory;
@@ -10,6 +11,7 @@ export interface ContextItem {
   priority: number;
   truncatable?: boolean;
   reason?: string;
+  fidelity?: FidelityLevel;
 }
 
 export interface CategoryBudget {
@@ -146,6 +148,15 @@ export class BudgetAllocator {
       });
 
       for (const item of sorted) {
+        // Assign fidelity based on priority score thresholds
+        if (item.priority >= 0.8) {
+          item.fidelity = 'full';
+        } else if (item.priority >= 0.4) {
+          item.fidelity = 'skeleton';
+        } else {
+          item.fidelity = 'abstract';
+        }
+
         if (item.tokens <= remaining) {
           allocated.push(item);
           remaining -= item.tokens;

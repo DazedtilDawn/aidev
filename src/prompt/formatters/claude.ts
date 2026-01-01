@@ -11,6 +11,17 @@ export class ClaudeFormatter implements PromptFormatter {
     parts.push('<context>');
     parts.push(`  <generated_at>${timestamp}</generated_at>`);
 
+    // Inject Advisory Council Insights
+    if (bundle.insights && bundle.insights.length > 0) {
+      parts.push('  <advisory_council>');
+      for (const insight of bundle.insights) {
+        parts.push(`    <insight advisor="${insight.advisor}" label="${this.escapeXml(insight.label)}" provenance="${this.escapeXml(insight.provenance)}">`);
+        parts.push(`      ${this.escapeXml(insight.content)}`);
+        parts.push('    </insight>');
+      }
+      parts.push('  </advisory_council>');
+    }
+
     const instructions = bundle.preset?.content || bundle.instructions;
     if (instructions) {
       parts.push('  <instructions>');

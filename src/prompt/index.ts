@@ -3,3 +3,5 @@ export type { ContextItem, ContextCategory, AllocationResult, CategoryBudget } f
 export { PromptPackGenerator } from './generator.js';
 export type { PromptPack, PromptPackManifest, PromptSection, GeneratorOptions } from './generator.js';
 export type { PromptFormatter, ContextBundle, ContextFile } from './types.js';
+export { PresetResolver } from './presets/resolver.js';
+export { DistillationEngine } from './distillation.js';

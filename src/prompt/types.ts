@@ -1,5 +1,6 @@
 import { ImpactReport } from '../impact/analyzer.js';
 import { Preset } from './presets/types.js';
+import { CouncilInsight } from './advisors/base.js';
 
 /**
  * Represents a single file included in the context bundle.
@@ -91,6 +92,11 @@ export interface ContextBundle {
    * Uses provider-specific estimation (cl100k for OpenAI, claude for Anthropic).
    */
   tokenEstimate?: number;
+
+  /**
+   * Institutional memory gathered by the Advisory Council.
+   */
+  insights?: CouncilInsight[];
 
   /**
    * The resolved preset used for generation, if any.
