@@ -34,13 +34,15 @@ export class EmbeddingClient {
 
       const data = await response.json() as any;
       
-      // OpenAI format: { data: [{ embedding: [], index: 0 }, ...] }
-      if (!data.data || !Array.isArray(data.data)) {
-        throw new Error('Invalid response format from embedding API');
+      // Handle both OpenAI and LM Studio formats
+      const results = data.data || data;
+      if (!Array.isArray(results)) {
+        console.error('Embedding API response:', JSON.stringify(data, null, 2));
+        throw new Error('Invalid response format from embedding API: data is not an array');
       }
 
-      // Sort by index to ensure order matches input
-      const sorted = data.data.sort((a: any, b: any) => a.index - b.index);
+      // Sort by index if present to ensure order matches input
+      const sorted = results.sort((a: any, b: any) => (a.index || 0) - (b.index || 0));
       return sorted.map((item: any) => item.embedding);
     } catch (error) {
       if (error instanceof Error) {
