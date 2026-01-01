@@ -1,35 +1,46 @@
 # Project Tracks
 
-This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
+This file tracks all major tracks for the project. Completed tracks are archived.
 
 ---
 
-## [x] Track: Advanced Dependency Skeletons & Risk Analysis
-*Link: [./conductor/tracks/skeletons_risk_20251221/](./conductor/tracks/skeletons_risk_20251221/)*
+## Active Tracks
 
-## [x] Track: Automated Test Scaffolding
-*Link: [./conductor/tracks/test_scaffolding_20251221/](./conductor/tracks/test_scaffolding_20251221/)*
+*No active tracks*
 
-## [x] Track: Mission Control: Visual Context Dashboard
-*Link: [./conductor/tracks/mission_control_20251221/](./conductor/tracks/mission_control_20251221/)*
+---
 
-## [x] Track: Mission Control v2: Advanced Visualization & Edge Integration
-*Link: [./conductor/tracks/mission_control_v2_20251222/](./conductor/tracks/mission_control_v2_20251222/)*
+## Archived Tracks
 
-## [x] Track: Mission Control v3: Visual Preset Selector
-*Link: [./conductor/tracks/mission_control_v3_20251222/](./conductor/tracks/mission_control_v3_20251222/)*
+### [x] Track: Advanced Dependency Skeletons & Risk Analysis
+*Link: [./archive/skeletons_risk_20251221/](./archive/skeletons_risk_20251221/)*
 
-## [x] Track: Mission Control v4: Semantic Auto-Context
-*Link: [./conductor/tracks/mission_control_v4_20251222/](./conductor/tracks/mission_control_v4_20251222/)*
+### [x] Track: Automated Test Scaffolding
+*Link: [./archive/test_scaffolding_20251221/](./archive/test_scaffolding_20251221/)*
 
-## [x] Track: Mission Control v5: UX & Visual Polish
-*Link: [./conductor/tracks/mission_control_v5_polish_20251222/](./conductor/tracks/mission_control_v5_polish_20251222/)*
+### [x] Track: Mission Control: Visual Context Dashboard
+*Link: [./archive/mission_control_20251221/](./archive/mission_control_20251221/)*
 
-## [x] Track: Mission Control v6: The Tactical HUD
-*Link: [./conductor/tracks/mission_control_v6_tactical_hud_20251222/](./conductor/tracks/mission_control_v6_tactical_hud_20251222/)*
+### [x] Track: Mission Control v2: Advanced Visualization & Edge Integration
+*Link: [./archive/mission_control_v2_20251222/](./archive/mission_control_v2_20251222/)*
 
-## [ ] Track: Historian Vertical Slice (The First Advisor)
-*Link: [./conductor/tracks/historian_vertical_slice_20251223/](./conductor/tracks/historian_vertical_slice_20251223/)*
+### [x] Track: Mission Control v3: Visual Preset Selector
+*Link: [./archive/mission_control_v3_20251222/](./archive/mission_control_v3_20251222/)*
 
-## [x] Track: Context Forge: The Intelligence Layer
-*Link: [./conductor/archive/context_forge_20251223/plan.md](./conductor/archive/context_forge_20251223/plan.md)*
+### [x] Track: Mission Control v4: Semantic Auto-Context
+*Link: [./archive/mission_control_v4_20251222/](./archive/mission_control_v4_20251222/)*
+
+### [x] Track: Mission Control v5: UX & Visual Polish
+*Link: [./archive/mission_control_v5_polish_20251222/](./archive/mission_control_v5_polish_20251222/)*
+
+### [x] Track: Mission Control v6: The Tactical HUD
+*Link: [./archive/mission_control_v6_tactical_hud_20251222/](./archive/mission_control_v6_tactical_hud_20251222/)*
+
+### [x] Track: Mission Control v7: Execution Bridge
+*Link: [./archive/mission_control_v7_execution_bridge/](./archive/mission_control_v7_execution_bridge/)*
+
+### [x] Track: Historian Vertical Slice (The First Advisor)
+*Link: [./archive/historian_vertical_slice_20251223/](./archive/historian_vertical_slice_20251223/)*
+
+### [x] Track: Context Forge: The Intelligence Layer
+*Link: [./archive/context_forge_20251223/](./archive/context_forge_20251223/)*
