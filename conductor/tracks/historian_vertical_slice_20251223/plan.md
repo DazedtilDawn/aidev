@@ -3,11 +3,11 @@
 ## Goal
 Prove the MEM1 architecture by implementing the Historian advisor end-to-end: from raw git history -> distilled facts in `<IS>` -> advisory insight.
 
-## Phase 1: The Source (Git Extraction)
-- [ ] **Task 1.1:** Implement `GitHistoryService`.
-  - [ ] Fetch commits touching specific files (last N days/commits).
-  - [ ] Extract key metadata: hash, author, date, message, diff summary.
-  - [ ] Output structured JSON.
+## Phase 1: The Source (Git Extraction) ✅
+- [x] **Task 1.1:** Implement `GitHistoryService`.
+  - [x] Fetch commits touching specific files (last N days/commits).
+  - [x] Extract key metadata: hash, author, date, message, diff summary.
+  - [x] Output structured JSON.
 
 ## Phase 2: The Brain (State Management & Distillation)
 - [ ] **Task 2.1:** Implement `StateManager` (CRUD for `<IS>`).
