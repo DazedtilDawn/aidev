@@ -1,11 +1,8 @@
-import chokidar from 'chokidar';
+import { watch, FSWatcher } from 'chokidar';
 import { Server } from 'socket.io';
-import { loadProjectModel } from '../model/index.js';
-import { ImpactAnalyzer } from '../impact/index.js';
-import { normalizePath } from '../utils/index.js';
 
 export class ProjectWatcher {
-  private watcher: chokidar.FSWatcher | null = null;
+  private watcher: FSWatcher | null = null;
 
   constructor(private projectPath: string, private io: Server) {}
 
@@ -13,23 +10,23 @@ export class ProjectWatcher {
     console.log(`👀 Watching for changes in ${this.projectPath}...`);
     
     // Watch for changes in src and .aidev
-    this.watcher = chokidar.watch(['src/**/*', '.aidev/model/**/*'], {
+    this.watcher = watch(['src/**/*', '.aidev/model/**/*'], {
       cwd: this.projectPath,
       ignoreInitial: true,
       ignored: ['**/node_modules/**', '**/dist/**']
     });
 
-    this.watcher.on('change', async (path) => {
+    this.watcher.on('change', async (path: string) => {
       console.log(`File changed: ${path}. Refreshing graph...`);
       await this.notifyClients();
     });
 
-    this.watcher.on('add', async (path) => {
+    this.watcher.on('add', async (path: string) => {
       console.log(`File added: ${path}. Refreshing graph...`);
       await this.notifyClients();
     });
 
-    this.watcher.on('unlink', async (path) => {
+    this.watcher.on('unlink', async (path: string) => {
       console.log(`File removed: ${path}. Refreshing graph...`);
       await this.notifyClients();
     });

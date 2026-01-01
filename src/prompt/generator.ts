@@ -13,6 +13,12 @@ import { UniversalFormatter } from './formatters/universal.js';
 import { TypeScriptSkeletonExtractor } from '../scanners/index.js';
 import { Preset } from './presets/types.js';
 import { interpolate } from './presets/interpolator.js';
+import { Historian } from './advisors/historian.js';
+import { Architect } from './advisors/architect.js';
+import { Visionary } from './advisors/visionary.js';
+import { CouncilInsight } from './advisors/base.js';
+import { GitHistoryService } from '../git/index.js';
+import { DistillationEngine } from './distillation.js';
 
 /**
  * Configuration options for the PromptPackGenerator.
@@ -98,6 +104,7 @@ export interface PromptPack {
   content: string | object;
   sections: PromptSection[];
   allocation: AllocationResult;
+  insights: CouncilInsight[]; // Add this
 }
 
 /**
@@ -126,6 +133,9 @@ export class PromptPackGenerator {
   private allocator: BudgetAllocator;
   private options: GeneratorOptions;
   private tsSkeletonExtractor: TypeScriptSkeletonExtractor;
+  private advisors: (Historian | Architect | Visionary)[];
+  private gitHistory: GitHistoryService;
+  private distillation: DistillationEngine;
 
   constructor(options: GeneratorOptions) {
     this.options = options;
@@ -133,6 +143,13 @@ export class PromptPackGenerator {
     this.estimator = createEstimator(options.provider);
     this.allocator = new BudgetAllocator(options.budget);
     this.tsSkeletonExtractor = new TypeScriptSkeletonExtractor();
+    this.advisors = [
+      new Historian(),
+      new Architect(),
+      new Visionary()
+    ];
+    this.gitHistory = new GitHistoryService(options.projectPath);
+    this.distillation = new DistillationEngine(options.projectPath);
   }
 
   /**
@@ -177,19 +194,47 @@ export class PromptPackGenerator {
     // 2. Allocate within budget
     const allocation = this.allocator.allocate(items);
 
+    // 2.1 The Distillation Loop (Source -> Brain)
+    const anchorPaths = report.changedFiles.map(f => f.path);
+    const insights: CouncilInsight[] = [];
+    if (anchorPaths.length > 0) {
+      try {
+        const commits = await this.gitHistory.getRecentCommits(anchorPaths, 5);
+        await this.distillation.distillCommits(commits);
+      } catch (error) {
+        console.warn('Distillation loop failed:', error);
+      }
+    }
+
+    // 2.5 Collect Council Insights (Brain -> Voice)
+    for (const advisor of this.advisors) {
+      const results = await advisor.provideInsights(anchorPaths);
+      insights.push(...results);
+    }
+
     // 3. Build ContextBundle
     const bundle: ContextBundle = {
       timestamp: new Date().toISOString(),
       impactReport: report,
+      insights, // Inject into bundle
       files: allocation.allocated
         .filter(i => i.path)
-        .map(i => ({
-          path: i.path!,
-          content: i.content,
-          isRedacted: i.content.includes('[REDACTED:'),
-          isSkeleton: i.category === 'impacted' && this.options.useSkeletons,
-          reason: i.reason,
-        })),
+        .map(i => {
+          let content = i.content;
+          const isTS = i.path!.endsWith('.ts') || i.path!.endsWith('.tsx');
+          
+          if (i.fidelity === 'skeleton' && isTS) {
+            content = this.tsSkeletonExtractor.extractSkeleton(content);
+          }
+
+          return {
+            path: i.path!,
+            content: content,
+            isRedacted: content.includes('[REDACTED:'),
+            isSkeleton: i.fidelity === 'skeleton',
+            reason: i.reason,
+          };
+        }),
       instructions: this.options.taskDescription,
       tokenEstimate: allocation.totalTokens,
       preset: preset,
@@ -259,6 +304,7 @@ export class PromptPackGenerator {
       content,
       sections: [],
       allocation,
+      insights, // Include insights
     };
   }
 
@@ -272,19 +318,47 @@ export class PromptPackGenerator {
     // 2. Allocate within budget
     const allocation = this.allocator.allocate(items);
 
+    // 2.1 The Distillation Loop (Source -> Brain)
+    const anchorPaths = report.changedFiles.map(f => f.path);
+    const insights: CouncilInsight[] = [];
+    if (anchorPaths.length > 0) {
+      try {
+        const commits = await this.gitHistory.getRecentCommits(anchorPaths, 5);
+        await this.distillation.distillCommits(commits);
+      } catch (error) {
+        console.warn('Distillation loop failed:', error);
+      }
+    }
+
+    // 2.5 Collect Council Insights (Brain -> Voice)
+    for (const advisor of this.advisors) {
+      const results = await advisor.provideInsights(anchorPaths);
+      insights.push(...results);
+    }
+
     // 3. Build ContextBundle
     const bundle: ContextBundle = {
       timestamp: new Date().toISOString(),
       impactReport: report,
+      insights, // Inject into bundle
       files: allocation.allocated
         .filter(i => i.path)
-        .map(i => ({
-          path: i.path!,
-          content: i.content,
-          isRedacted: i.content.includes('[REDACTED:'),
-          isSkeleton: i.category === 'impacted' && this.options.useSkeletons,
-          reason: i.reason,
-        })),
+        .map(i => {
+          let content = i.content;
+          const isTS = i.path!.endsWith('.ts') || i.path!.endsWith('.tsx');
+          
+          if (i.fidelity === 'skeleton' && isTS) {
+            content = this.tsSkeletonExtractor.extractSkeleton(content);
+          }
+
+          return {
+            path: i.path!,
+            content: content,
+            isRedacted: content.includes('[REDACTED:'),
+            isSkeleton: i.fidelity === 'skeleton',
+            reason: i.reason,
+          };
+        }),
       instructions: this.options.taskDescription,
       tokenEstimate: allocation.totalTokens
     };
@@ -305,6 +379,7 @@ export class PromptPackGenerator {
       content,
       sections: [],
       allocation,
+      insights, // Include insights
     };
   }
 
@@ -332,6 +407,7 @@ export class PromptPackGenerator {
       content,
       sections,
       allocation,
+      insights: [], // Legacy mode doesn't run advisors
     };
   }
 
