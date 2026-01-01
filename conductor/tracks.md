@@ -28,5 +28,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## [x] Track: Mission Control v6: The Tactical HUD
 *Link: [./conductor/tracks/mission_control_v6_tactical_hud_20251222/](./conductor/tracks/mission_control_v6_tactical_hud_20251222/)*
 
+## [ ] Track: Historian Vertical Slice (The First Advisor)
+*Link: [./conductor/tracks/historian_vertical_slice_20251223/](./conductor/tracks/historian_vertical_slice_20251223/)*
+
 ## [x] Track: Context Forge: The Intelligence Layer
 *Link: [./conductor/archive/context_forge_20251223/plan.md](./conductor/archive/context_forge_20251223/plan.md)*

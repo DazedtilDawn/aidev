@@ -1,0 +1,6 @@
+{
+  "type": "feature",
+  "priority": "high",
+  "status": "in_progress",
+  "description": "Implementing the first vertical slice of the MEM1 architecture: The Historian advisor backed by a persistent Internal State."
+}
