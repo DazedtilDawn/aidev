@@ -4,12 +4,14 @@ import yaml from 'js-yaml';
 import { parseComponent, Component } from '../schemas/component.js';
 import { parseEdge, Edge } from '../schemas/edge.js';
 import { parseConfig, Config } from '../schemas/config.js';
+import { normalizePath } from '../utils/index.js';
 
 export interface ProjectModel {
   config: Config;
   components: Component[];
   declaredEdges: Edge[];
   discoveredEdges: Edge[];
+  files: Array<{ path: string }>;
   // Reverse lookup: component -> components that depend on it (built at load time per ChatGPT review)
   dependentsByComponent: Map<string, string[]>;
 }
@@ -23,6 +25,7 @@ export async function loadProjectModel(projectPath: string): Promise<ProjectMode
       components: [],
       declaredEdges: [],
       discoveredEdges: [],
+      files: [],
       dependentsByComponent: new Map(),
     };
   }
@@ -32,10 +35,18 @@ export async function loadProjectModel(projectPath: string): Promise<ProjectMode
   const declaredEdges = loadEdges(aidevPath, 'declared_edges.yaml');
   const discoveredEdges = loadEdges(aidevPath, 'discovered_edges.yaml');
 
+  // Build the set of all unique files mentioned in edges
+  const filePaths = new Set<string>();
+  [...declaredEdges, ...discoveredEdges].forEach(edge => {
+    filePaths.add(normalizePath(edge.source));
+    filePaths.add(normalizePath(edge.target));
+  });
+  const files = Array.from(filePaths).map(p => ({ path: p }));
+
   // Build reverse edge map for O(1) impact lookup (per ChatGPT review)
   const dependentsByComponent = buildDependentsMap(components);
 
-  return { config, components, declaredEdges, discoveredEdges, dependentsByComponent };
+  return { config, components, declaredEdges, discoveredEdges, files, dependentsByComponent };
 }
 
 // Build reverse lookup: for each component, who depends on it?

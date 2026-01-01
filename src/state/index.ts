@@ -17,3 +17,6 @@ export type {
   Decision,
   Constraint,
 } from '../schemas/state.js';
+
+export { InternalStateManager } from './internal-state.js';
+export type { InternalState as XMLInternalState } from './internal-state.js';

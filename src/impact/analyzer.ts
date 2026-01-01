@@ -3,6 +3,7 @@ import { ProjectModel } from '../model/index.js';
 import { ChangedFile } from '../git/index.js';
 import { Edge } from '../schemas/edge.js';
 import { normalizePath } from '../utils/index.js';
+import { BehavioralAnalyzer } from './behavioral.js';
 
 export interface ImpactEdge {
   source: string;
@@ -67,8 +68,11 @@ export interface ImpactReport {
 export class ImpactAnalyzer {
   private mergedEdges: Edge[] | null = null;
   private reverseFileEdges: Map<string, Edge[]> | null = null;
+  private behavioralAnalyzer: BehavioralAnalyzer;
 
-  constructor(private model: ProjectModel) {}
+  constructor(private model: ProjectModel) {
+    this.behavioralAnalyzer = new BehavioralAnalyzer(model);
+  }
 
   analyze(changes: ChangedFile[]): ImpactReport {
     // Component-level analysis
@@ -193,12 +197,25 @@ export class ImpactAnalyzer {
     const allEdges = this.getMergedEdges();
     const reverseEdges = this.getReverseFileEdges();
 
+    // Discovery behavioral relationships (tests, types, naming siblings)
+    const behavioralEdges = this.behavioralAnalyzer.findRelatedFiles(Array.from(changedPaths));
+
     // Build forward edge lookup: source -> edges
     const forwardEdges = new Map<string, Edge[]>();
+    
+    // Add standard structural edges
     for (const edge of allEdges) {
       const source = normalizePath(edge.source);
       const existing = forwardEdges.get(source) || [];
       existing.push(edge);
+      forwardEdges.set(source, existing);
+    }
+
+    // Mix in behavioral edges (higher precedence for discovery)
+    for (const edge of behavioralEdges) {
+      const source = normalizePath(edge.source);
+      const existing = forwardEdges.get(source) || [];
+      existing.push(edge as Edge);
       forwardEdges.set(source, existing);
     }
 

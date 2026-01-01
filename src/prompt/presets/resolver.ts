@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
@@ -8,6 +8,31 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export class PresetResolver {
+  /**
+   * List all available built-in presets.
+   */
+  async list(): Promise<Array<{ id: string; title: string }>> {
+    const templatesDir = join(__dirname, 'templates');
+    if (!existsSync(templatesDir)) {
+      return [];
+    }
+
+    const files = readdirSync(templatesDir).filter(f => f.endsWith('.md'));
+    const presets: Array<{ id: string; title: string }> = [];
+
+    for (const file of files) {
+      const preset = this.loadFromFile(join(templatesDir, file));
+      if (preset) {
+        presets.push({
+          id: preset.config.id,
+          title: preset.config.title,
+        });
+      }
+    }
+
+    return presets;
+  }
+
   /**
    * Resolve a preset by name or path.
    * 

@@ -28,12 +28,16 @@ export class TypeScriptSkeletonExtractor implements SkeletonExtractor {
         if (
           node.type === AST_NODE_TYPES.FunctionDeclaration ||
           node.type === AST_NODE_TYPES.FunctionExpression ||
-          node.type === AST_NODE_TYPES.ArrowFunctionExpression
+          node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+          node.type === AST_NODE_TYPES.MethodDefinition
         ) {
-          if (node.body && node.body.type === AST_NODE_TYPES.BlockStatement) {
+          // For MethodDefinition, we want to skeletonize the 'value' (which is a FunctionExpression)
+          const target = node.type === AST_NODE_TYPES.MethodDefinition ? node.value : node;
+
+          if (target.body && target.body.type === AST_NODE_TYPES.BlockStatement) {
             replacements.push({
-              start: node.body.range[0],
-              end: node.body.range[1],
+              start: target.body.range[0],
+              end: target.body.range[1],
               text: '{}'
             });
           }
